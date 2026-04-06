@@ -4,188 +4,32 @@ const globalCache = globalThis.__plantingCache || new Map();
 globalThis.__plantingCache = globalCache;
 
 const CROPS = [
-  {
-    vegetable: 'Tomato',
-    idealIndoorTemp: '70–80',
-    startIndoorsWeeks: [8, 6],
-    outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [0, 1] },
-    notes: 'Warm-season transplant.'
-  },
-  {
-    vegetable: 'Pepper',
-    idealIndoorTemp: '75–85',
-    startIndoorsWeeks: [10, 8],
-    outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [1, 2] },
-    notes: 'Needs warmer nights than tomato.'
-  },
-  {
-    vegetable: 'Cucumber',
-    idealIndoorTemp: '70–80',
-    startIndoorsWeeks: [4, 3],
-    outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [0, 1] },
-    notes: 'Can also be direct sown outdoors.'
-  },
-  {
-    vegetable: 'Zucchini / Squash',
-    idealIndoorTemp: '70–80',
-    startIndoorsWeeks: [3, 2],
-    outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [0, 1] },
-    notes: 'Do not start too early indoors.'
-  },
-  {
-    vegetable: 'Green Beans',
-    idealIndoorTemp: '65–75',
-    startIndoorsWeeks: null,
-    outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [0, 1] },
-    notes: 'Usually direct sow.'
-  },
-  {
-    vegetable: 'Peas',
-    idealIndoorTemp: '60–70',
-    startIndoorsWeeks: null,
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [6, 4] },
-    notes: 'Cool-season direct sow.'
-  },
-  {
-    vegetable: 'Lettuce',
-    idealIndoorTemp: '60–70',
-    startIndoorsWeeks: null,
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] },
-    notes: 'Cool-season direct sow.'
-  },
-  {
-    vegetable: 'Spinach',
-    idealIndoorTemp: '55–65',
-    startIndoorsWeeks: null,
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [6, 4] },
-    notes: 'Cool-season direct sow.'
-  },
-  {
-    vegetable: 'Broccoli',
-    idealIndoorTemp: '60–70',
-    startIndoorsWeeks: [6, 4],
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [2, 1] },
-    notes: 'Cool-season transplant.'
-  },
-  {
-    vegetable: 'Cabbage',
-    idealIndoorTemp: '60–70',
-    startIndoorsWeeks: [6, 4],
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] },
-    notes: 'Cool-season transplant.'
-  },
-  {
-    vegetable: 'Cauliflower',
-    idealIndoorTemp: '60–70',
-    startIndoorsWeeks: [6, 4],
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [2, 1] },
-    notes: 'Cool-season transplant.'
-  },
-  {
-    vegetable: 'Brussels Sprouts',
-    idealIndoorTemp: '60–70',
-    startIndoorsWeeks: [6, 4],
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] },
-    notes: 'Spring timing shown; often stronger as a fall crop.'
-  },
-  {
-    vegetable: 'Carrot',
-    idealIndoorTemp: '60–70',
-    startIndoorsWeeks: null,
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] },
-    notes: 'Direct sow only.'
-  },
-  {
-    vegetable: 'Radish',
-    idealIndoorTemp: '55–65',
-    startIndoorsWeeks: null,
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [6, 4] },
-    notes: 'Fast cool-season direct sow.'
-  },
-  {
-    vegetable: 'Beet',
-    idealIndoorTemp: '60–70',
-    startIndoorsWeeks: null,
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] },
-    notes: 'Cool-season direct sow.'
-  },
-  {
-    vegetable: 'Onion',
-    idealIndoorTemp: '65–75',
-    startIndoorsWeeks: [10, 8],
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] },
-    notes: 'Transplant or sets.'
-  },
-  {
-    vegetable: 'Garlic',
-    idealIndoorTemp: '60–70',
-    startIndoorsWeeks: null,
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [8, 6] },
-    notes: 'Best planted in fall; spring window shown only as a fallback.'
-  },
-  {
-    vegetable: 'Leek',
-    idealIndoorTemp: '65–75',
-    startIndoorsWeeks: [10, 8],
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] },
-    notes: 'Cool-season transplant.'
-  },
-  {
-    vegetable: 'Red Potato',
-    idealIndoorTemp: '60–70',
-    startIndoorsWeeks: null,
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] },
-    notes: 'Plant seed potatoes early.'
-  },
-  {
-    vegetable: 'Eggplant',
-    idealIndoorTemp: '75–85',
-    startIndoorsWeeks: [10, 8],
-    outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [1, 2] },
-    notes: 'Very heat-loving.'
-  },
-  {
-    vegetable: 'Okra',
-    idealIndoorTemp: '75–90',
-    startIndoorsWeeks: [4, 3],
-    outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [2, 3] },
-    notes: 'Needs real heat.'
-  },
-  {
-    vegetable: 'Swiss Chard',
-    idealIndoorTemp: '60–70',
-    startIndoorsWeeks: null,
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] },
-    notes: 'Cool-season direct sow or transplant.'
-  },
-  {
-    vegetable: 'Celery',
-    idealIndoorTemp: '65–75',
-    startIndoorsWeeks: [12, 10],
-    outdoorRule: { anchor: 'lastFrost', direction: 'after', weeks: [0, 1] },
-    notes: 'Slow starter.'
-  },
-  {
-    vegetable: 'Asparagus',
-    idealIndoorTemp: '60–70',
-    startIndoorsWeeks: null,
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] },
-    notes: 'Usually planted as crowns.'
-  },
-  {
-    vegetable: 'Artichoke',
-    idealIndoorTemp: '65–75',
-    startIndoorsWeeks: [10, 8],
-    outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [2, 1] },
-    notes: 'Cooler outdoor start than warm crops.'
-  },
-  {
-    vegetable: 'Pumpkin',
-    idealIndoorTemp: '70–85',
-    startIndoorsWeeks: [3, 2],
-    outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [1, 2] },
-    notes: 'Warm-season crop with long vines.'
-  }
+  { vegetable: 'Tomato', idealIndoorTemp: '70–80', startIndoorsWeeks: [8, 6], outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [0, 1] }, notes: 'Warm-season transplant.' },
+  { vegetable: 'Pepper', idealIndoorTemp: '75–85', startIndoorsWeeks: [10, 8], outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [1, 2] }, notes: 'Needs warmer nights than tomato.' },
+  { vegetable: 'Cucumber', idealIndoorTemp: '70–80', startIndoorsWeeks: [4, 3], outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [0, 1] }, notes: 'Can also be direct sown outdoors.' },
+  { vegetable: 'Zucchini / Squash', idealIndoorTemp: '70–80', startIndoorsWeeks: [3, 2], outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [0, 1] }, notes: 'Do not start too early indoors.' },
+  { vegetable: 'Green Beans', idealIndoorTemp: '65–75', startIndoorsWeeks: null, outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [0, 1] }, notes: 'Usually direct sow.' },
+  { vegetable: 'Peas', idealIndoorTemp: '60–70', startIndoorsWeeks: null, outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [6, 4] }, notes: 'Cool-season direct sow.' },
+  { vegetable: 'Lettuce', idealIndoorTemp: '60–70', startIndoorsWeeks: null, outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] }, notes: 'Cool-season direct sow.' },
+  { vegetable: 'Spinach', idealIndoorTemp: '55–65', startIndoorsWeeks: null, outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [6, 4] }, notes: 'Cool-season direct sow.' },
+  { vegetable: 'Broccoli', idealIndoorTemp: '60–70', startIndoorsWeeks: [6, 4], outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [2, 1] }, notes: 'Cool-season transplant.' },
+  { vegetable: 'Cabbage', idealIndoorTemp: '60–70', startIndoorsWeeks: [6, 4], outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] }, notes: 'Cool-season transplant.' },
+  { vegetable: 'Cauliflower', idealIndoorTemp: '60–70', startIndoorsWeeks: [6, 4], outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [2, 1] }, notes: 'Cool-season transplant.' },
+  { vegetable: 'Brussels Sprouts', idealIndoorTemp: '60–70', startIndoorsWeeks: [6, 4], outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] }, notes: 'Spring timing shown; often stronger as a fall crop.' },
+  { vegetable: 'Carrot', idealIndoorTemp: '60–70', startIndoorsWeeks: null, outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] }, notes: 'Direct sow only.' },
+  { vegetable: 'Radish', idealIndoorTemp: '55–65', startIndoorsWeeks: null, outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [6, 4] }, notes: 'Fast cool-season direct sow.' },
+  { vegetable: 'Beet', idealIndoorTemp: '60–70', startIndoorsWeeks: null, outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] }, notes: 'Cool-season direct sow.' },
+  { vegetable: 'Onion', idealIndoorTemp: '65–75', startIndoorsWeeks: [10, 8], outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] }, notes: 'Transplant or sets.' },
+  { vegetable: 'Garlic', idealIndoorTemp: '60–70', startIndoorsWeeks: null, outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [8, 6] }, notes: 'Best planted in fall; spring window shown only as a fallback.' },
+  { vegetable: 'Leek', idealIndoorTemp: '65–75', startIndoorsWeeks: [10, 8], outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] }, notes: 'Cool-season transplant.' },
+  { vegetable: 'Red Potato', idealIndoorTemp: '60–70', startIndoorsWeeks: null, outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] }, notes: 'Plant seed potatoes early.' },
+  { vegetable: 'Eggplant', idealIndoorTemp: '75–85', startIndoorsWeeks: [10, 8], outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [1, 2] }, notes: 'Very heat-loving.' },
+  { vegetable: 'Okra', idealIndoorTemp: '75–90', startIndoorsWeeks: [4, 3], outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [2, 3] }, notes: 'Needs real heat.' },
+  { vegetable: 'Swiss Chard', idealIndoorTemp: '60–70', startIndoorsWeeks: null, outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] }, notes: 'Cool-season direct sow or transplant.' },
+  { vegetable: 'Celery', idealIndoorTemp: '65–75', startIndoorsWeeks: [12, 10], outdoorRule: { anchor: 'lastFrost', direction: 'after', weeks: [0, 1] }, notes: 'Slow starter.' },
+  { vegetable: 'Asparagus', idealIndoorTemp: '60–70', startIndoorsWeeks: null, outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [4, 2] }, notes: 'Usually planted as crowns.' },
+  { vegetable: 'Artichoke', idealIndoorTemp: '65–75', startIndoorsWeeks: [10, 8], outdoorRule: { anchor: 'lastFrost', direction: 'before', weeks: [2, 1] }, notes: 'Cooler outdoor start than warm crops.' },
+  { vegetable: 'Pumpkin', idealIndoorTemp: '70–85', startIndoorsWeeks: [3, 2], outdoorRule: { anchor: 'safeWarm', direction: 'after', weeks: [1, 2] }, notes: 'Warm-season crop with long vines.' }
 ];
 
 function sendJson(res, status, payload) {
@@ -287,7 +131,7 @@ async function fetchZipLocation(zip) {
   };
 }
 
-async function fetchZipFromCityState(query) {
+async function fetchZipCandidatesFromCityState(query) {
   const parts = query.split(',');
   const city = (parts[0] || '').trim();
   const state = (parts[1] || '').trim().toUpperCase();
@@ -303,17 +147,28 @@ async function fetchZipFromCityState(query) {
     throw new Error('City, State lookup returned no ZIP codes.');
   }
 
-  const firstPlace = data.places[0];
-  const zip = data['post code'] || firstPlace['post code'] || null;
+  const zipSet = new Set();
 
-  if (!zip || !/^\d{5}$/.test(String(zip))) {
+  if (data['post code'] && /^\d{5}$/.test(String(data['post code']))) {
+    zipSet.add(String(data['post code']));
+  }
+
+  for (const place of data.places) {
+    const zip = place && place['post code'] ? String(place['post code']) : '';
+    if (/^\d{5}$/.test(zip)) {
+      zipSet.add(zip);
+    }
+  }
+
+  const zips = [...zipSet];
+  if (!zips.length) {
     throw new Error('City, State lookup did not return a valid 5-digit ZIP code.');
   }
 
   return {
-    zip: String(zip),
-    city: firstPlace['place name'] || city,
-    state: firstPlace['state abbreviation'] || state
+    zips,
+    city: city,
+    state: state
   };
 }
 
@@ -399,14 +254,14 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    let zip = '';
+    let candidateZips = [];
     let inputLocation = null;
 
     if (isZipQuery(query)) {
-      zip = query;
+      candidateZips = [query];
     } else if (isCityStateQuery(query)) {
-      inputLocation = await fetchZipFromCityState(query);
-      zip = inputLocation.zip;
+      inputLocation = await fetchZipCandidatesFromCityState(query);
+      candidateZips = inputLocation.zips;
     } else {
       return sendJson(res, 400, {
         ok: false,
@@ -414,36 +269,46 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const [zipLocationResult, zoneResult, frostResult] = await Promise.allSettled([
-      fetchZipLocation(zip),
-      fetchZone(zip),
-      fetchFrost(zip)
-    ]);
+    let chosenZip = '';
+    let frostValue = null;
+    let locationValue = null;
+    let zoneValue = null;
+    const tried = [];
 
-    const location =
-      zipLocationResult.status === 'fulfilled'
+    for (const zip of candidateZips) {
+      tried.push(zip);
+
+      const [zipLocationResult, zoneResult, frostResult] = await Promise.allSettled([
+        fetchZipLocation(zip),
+        fetchZone(zip),
+        fetchFrost(zip)
+      ]);
+
+      const frostCandidate = frostResult.status === 'fulfilled' ? frostResult.value : null;
+      if (!frostCandidate) {
+        continue;
+      }
+
+      chosenZip = zip;
+      frostValue = frostCandidate;
+      locationValue = zipLocationResult.status === 'fulfilled'
         ? zipLocationResult.value
-        : inputLocation;
+        : inputLocation
+          ? { city: inputLocation.city, state: inputLocation.state }
+          : null;
+      zoneValue = zoneResult.status === 'fulfilled' ? zoneResult.value : null;
+      break;
+    }
 
-    const zoneValue =
-      zoneResult.status === 'fulfilled'
-        ? zoneResult.value
-        : null;
-
-    const frostValue =
-      frostResult.status === 'fulfilled'
-        ? frostResult.value
-        : null;
-
-    if (!frostValue) {
+    if (!frostValue || !chosenZip) {
       return sendJson(res, 502, {
         ok: false,
-        error: 'The backend could not verify the median last spring frost date for this search, so the calendar was not built.'
+        error: `The backend could not verify the median last spring frost date for this search after trying these ZIP codes: ${tried.join(', ')}.`
       });
     }
 
     const safeWarmStart = addDays(frostValue.lastFrostDate, 14);
-    const verification = zoneValue && location ? 'verified' : 'partial';
+    const verification = zoneValue && locationValue ? 'verified' : 'partial';
 
     let lookupNote = '';
     if (verification === 'verified') {
@@ -452,7 +317,7 @@ module.exports = async function handler(req, res) {
         : 'Zone, location, and frost results were verified. Warm-season crops use a safer outdoor anchor 14 days after that frost date.';
     } else {
       const missing = [];
-      if (!location) missing.push('location');
+      if (!locationValue) missing.push('location');
       if (!zoneValue) missing.push('zone');
 
       lookupNote = `The calendar was built because the frost date was verified, but ${missing.join(' and ')} could not be fully verified for this search. Values that could not be verified are shown as unavailable.`;
@@ -462,8 +327,8 @@ module.exports = async function handler(req, res) {
       ok: true,
       verification,
       input: query,
-      zip,
-      locationDisplay: location ? [location.city, location.state].filter(Boolean).join(', ') || '—' : 'Unavailable',
+      zip: chosenZip,
+      locationDisplay: locationValue ? [locationValue.city, locationValue.state].filter(Boolean).join(', ') || '—' : 'Unavailable',
       zone: zoneValue || 'Unavailable',
       lastFrostDisplay: formatDate(frostValue.lastFrostDate),
       safeWarmStartDisplay: formatDate(safeWarmStart),
