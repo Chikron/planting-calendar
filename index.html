@@ -274,7 +274,7 @@ table {
   min-width: 0;
   border-collapse: collapse;
   background: rgba(255,255,255,.02);
-  table-layout: fixed;
+  table-layout: auto;
 }
 
     table {
@@ -316,6 +316,7 @@ table {
   font-weight: 700;
   white-space: normal;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 td:last-child,
@@ -384,12 +385,12 @@ th:last-child {
 
 .table-wrap {
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
 table {
   min-width: 1180px;
-  table-layout: auto;
 }
     
     @media (max-width: 640px) {
@@ -437,6 +438,13 @@ table {
         padding: 10px 8px;
       }
 
+th,
+td {
+  max-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+      
       .status,
       .foot,
       .note-box {
