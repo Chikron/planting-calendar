@@ -273,14 +273,6 @@ async function fetchJson(url, { timeoutMs = 8000, retries = 2, headers = {} } = 
   throw lastError || new Error('Request failed.');
 }
 
-async function fetchZipLocation(zip) {
-  const data = await fetchJson(`https://api.zippopotam.us/us/${zip}`);
-  const place = data && Array.isArray(data.places) && data.places[0] ? data.places[0] : null;
-
-  if (!place) {
-    throw new Error('ZIP location not found.');
-  }
-
   return {
     city: place['place name'] || '',
     state: place['state abbreviation'] || place['state'] || '',
@@ -298,17 +290,7 @@ async function fetchLocationFromCityState(query) {
     throw new Error('City, State format is invalid.');
   }
 
-  const url = `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=USA&format=jsonv2&limit=1`;
-
-  const data = await fetchJson(url, {
-    timeoutMs: 8000,
-    retries: 2,
-    headers: {
-      'User-Agent': 'planting-calendar/1.0'
-    }
-  });
-
-  if (!Array.isArray(data) || !data[0]) {
+    if (!Array.isArray(data) || !data[0]) {
     throw new Error('City, State location not found.');
   }
 
@@ -323,22 +305,39 @@ async function fetchLocationFromCityState(query) {
 async function fetchZipFromCoordinates(lat, lon) {
   const url = `https://geocode.maps.co/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&format=json`;
 
+async function fetchZipFromCityState(query) {
+  const parts = query.split(',');
+  const city = (parts[0] || '').trim();
+  const state = (parts[1] || '').trim().toUpperCase();
+
+  if (!city || !state) {
+    throw new Error('City, State format is invalid.');
+  }
+
+  const citySlug = city.replace(/\s+/g, '%20');
+  const url = `https://api.zippopotam.us/us/${encodeURIComponent(state)}/${citySlug}`;
+
   const data = await fetchJson(url, { timeoutMs: 8000, retries: 2 });
 
-  const postcode = data && data.address ? data.address.postcode : null;
-  if (!postcode) {
-    throw new Error('ZIP code could not be resolved from City, State.');
+  if (!data || !Array.isArray(data.places) || !data.places.length) {
+    throw new Error('City, State lookup returned no ZIP codes.');
   }
 
-  const match = String(postcode).match(/\d{5}/);
-  if (!match) {
-    throw new Error('Resolved ZIP code was invalid.');
+  const firstPlace = data.places[0];
+  const zip = firstPlace['post code'] || data['post code'] || null;
+
+  if (!zip || !/^\d{5}$/.test(String(zip))) {
+    throw new Error('City, State lookup did not return a valid 5-digit ZIP code.');
   }
 
-  return match[0];
+  return {
+    zip: String(zip),
+    city: firstPlace['place name'] || city,
+    state: firstPlace['state abbreviation'] || state
+  };
 }
-
-async function fetchZone(zip) {
+  
+  async function fetchZone(zip) {
   const data = await fetchJson(`https://phzmapi.org/${zip}.json`);
   if (!data || !data.zone) {
     throw new Error('Zone result missing.');
@@ -420,19 +419,19 @@ module.exports = async function handler(req, res) {
 
   try {
     let zip = '';
-    let inputLocation = null;
+let inputLocation = null;
 
-    if (isZipQuery(query)) {
-      zip = query;
-    } else if (isCityStateQuery(query)) {
-      inputLocation = await fetchLocationFromCityState(query);
-      zip = await fetchZipFromCoordinates(inputLocation.latitude, inputLocation.longitude);
-    } else {
-      return sendJson(res, 400, {
-        ok: false,
-        error: 'Use either a 5-digit ZIP code or City, State.'
-      });
-    }
+if (isZipQuery(query)) {
+  zip = query;
+} else if (isCityStateQuery(query)) {
+  inputLocation = await fetchZipFromCityState(query);
+  zip = inputLocation.zip;
+} else {
+  return sendJson(res, 400, {
+    ok: false,
+    error: 'Use either a 5-digit ZIP code or City, State.'
+  });
+}
 
     const [zipLocation, zone, frost] = await Promise.allSettled([
       fetchZipLocation(zip),
