@@ -3,53 +3,202 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planting Calendar</title>
+<title>Planting Calendar by ZIP Code</title>
 
 <style>
-body { font-family: Arial; background:#0b1020; color:white; padding:20px; }
-input,button{padding:10px;border-radius:6px;border:none;}
-button{background:#7dd3fc;cursor:pointer;}
-table{width:100%;margin-top:20px;border-collapse:collapse;}
-th,td{padding:10px;border-bottom:1px solid #2a3766;text-align:center;}
-.panel{margin-top:20px;}
+:root {
+  --bg: #0b1020;
+  --panel: #121933;
+  --panel-2: #162147;
+  --text: #eef3ff;
+  --muted: #aeb9d6;
+  --line: #2a3766;
+  --accent: #7dd3fc;
+  --danger: #fca5a5;
+  --shadow: 0 14px 40px rgba(0,0,0,.28);
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(125,211,252,.10), transparent 28%),
+    linear-gradient(180deg, #0a1021 0%, #0b1020 100%);
+  color: var(--text);
+}
+
+.wrap {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.hero, .panel {
+  background: var(--panel);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255,255,255,.06);
+}
+
+.hero { padding: 24px; }
+
+h1 {
+  margin: 0 0 10px;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+
+.sub {
+  margin: 0;
+  color: var(--muted);
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: 200px 170px 200px auto;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.field {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.field label {
+  display: block;
+  font-size: .8rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.field input, .field select {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+}
+
+button {
+  height: 60px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), #60a5fa);
+  color: #071224;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.status {
+  margin-top: 14px;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.panel { padding: 18px; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: center;
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.hidden { display:none; }
 </style>
 </head>
 
 <body>
+<div class="wrap">
 
-<h1>Planting Calendar (Real Data Enabled)</h1>
+<section class="hero">
+<h1>Interactive Planting Calendar</h1>
+<p class="sub">Enter your ZIP code and adjust your zone and frost date.</p>
 
-<input id="zip" placeholder="63123">
-<button onclick="run()">Build</button>
+<div class="toolbar">
+<div class="field">
+<label>ZIP Code</label>
+<input id="zip" placeholder="Enter Zip Code">
+</div>
 
-<div id="status"></div>
-<div id="facts"></div>
+<div class="field">
+<label>USDA Zone</label>
+<select id="zone">
+<option>6b</option>
+<option>6a</option>
+<option>5b</option>
+<option>7a</option>
+</select>
+</div>
 
+<div class="field">
+<label>Last Frost</label>
+<input id="lastFrost" type="date">
+</div>
+
+<button id="go">Build Calendar</button>
+</div>
+
+<div id="status" class="status">Ready</div>
+</section>
+
+<section class="grid">
+
+<div class="panel" id="facts"></div>
+
+<div class="panel">
 <table>
 <thead>
 <tr>
 <th>Vegetable</th>
 <th>Start Indoors</th>
-<th>Ideal Temp</th>
+<th>Ideal Indoor Temp (°F)</th>
 <th>Plant Outside</th>
 </tr>
 </thead>
-<tbody id="table"></tbody>
+<tbody id="calendarBody"></tbody>
 </table>
+</div>
+
+</section>
+
+</div>
 
 <script>
+const zipInput = document.getElementById('zip');
+const zone = document.getElementById('zone');
+const frostInput = document.getElementById('lastFrost');
+const go = document.getElementById('go');
+const facts = document.getElementById('facts');
+const table = document.getElementById('calendarBody');
+const status = document.getElementById('status');
 
-function fmt(d){return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});}
-function shift(d,w,b=true){let x=new Date(d);x.setDate(x.getDate()+(w*7*(b?-1:1)));return x;}
-function valid(z){return /^\d{5}$/.test(z);}
-
-// fallback estimator
-function estimate(zip){
- let frost=new Date(new Date().getFullYear(),3,15);
- return {zone:"Estimated",frost};
+function fmt(d){
+ return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
 }
 
-const crops=[
+function shift(d,w,b=true){
+ let x=new Date(d);
+ x.setDate(x.getDate()+(w*7*(b?-1:1)));
+ return x;
+}
+
+const crops = [
 ["Tomato",[8,6],[1,2],"70–80"],
 ["Pepper",[10,8],[2,3],"75–85"],
 ["Cucumber",[4,3],[1,2],"70–80"],
@@ -59,86 +208,40 @@ const crops=[
 ["Lettuce",null,[-4,-2],"60–70"],
 ["Spinach",null,[-6,-4],"55–65"],
 ["Broccoli",[6,4],[-2,-1],"60–70"],
-["Cabbage",[6,4],[-4,-2],"60–70"],
-["Carrot",null,[-4,-2],"60–70"],
-["Radish",null,[-6,-4],"55–65"]
+["Cabbage",[6,4],[-4,-2],"60–70"]
 ];
 
-async function getZone(zip){
- try{
-  let r=await fetch(`https://phzmapi.org/${zip}.json`);
-  let j=await r.json();
-  return j.zone;
- }catch{return null;}
-}
+go.onclick = () => {
+ let frost = new Date(frostInput.value);
 
-async function getFrost(zip){
- try{
-  let r=await fetch(`https://apis.joelgrant.dev/api/v1/frost/${zip}`);
-  let j=await r.json();
-  return j.data.frost_dates.last_frost_32f["50"];
- }catch{return null;}
-}
-
-async function run(){
- let zip=document.getElementById("zip").value;
-
- if(!valid(zip)){
-  status.innerText="Invalid ZIP";
-  return;
- }
-
- status.innerText="Loading real data...";
-
- let zone=await getZone(zip);
- let frost=await getFrost(zip);
-
- let data;
-
- if(zone && frost){
-  let [m,d]=frost.split("/");
-  data={
-   zone,
-   frost:new Date(new Date().getFullYear(),m-1,d),
-   real:true
-  };
- }else{
-  data=estimate(zip);
-  data.real=false;
- }
-
- facts.innerHTML=`
- <b>ZIP:</b> ${zip}<br>
- <b>Zone:</b> ${data.zone}<br>
- <b>Last Frost:</b> ${fmt(data.frost)}<br>
- <b>Mode:</b> ${data.real?"Real Data":"Estimated"}
+ facts.innerHTML = `
+ ZIP: ${zipInput.value}<br>
+ Zone: ${zone.value}<br>
+ Frost: ${fmt(frost)}
  `;
 
- table.innerHTML="";
+ table.innerHTML = "";
 
  crops.forEach(c=>{
-  let indoor="Direct sow";
-  if(c[1]) indoor=`${fmt(shift(data.frost,c[1][0]))} - ${fmt(shift(data.frost,c[1][1]))}`;
+  let indoor = c[1]
+   ? `${fmt(shift(frost,c[1][0]))} - ${fmt(shift(frost,c[1][1]))}`
+   : "Direct sow";
 
-  let out;
-  if(c[2][0]<0){
-   out=`${fmt(shift(data.frost,Math.abs(c[2][0])))} - ${fmt(shift(data.frost,Math.abs(c[2][1])))}`
-  } else {
-   out=`${fmt(shift(data.frost,c[2][0],false))} - ${fmt(shift(data.frost,c[2][1],false))}`
-  }
+  let out = c[2][0] < 0
+   ? `${fmt(shift(frost,Math.abs(c[2][0])))} - ${fmt(shift(frost,Math.abs(c[2][1])))}`
+   : `${fmt(shift(frost,c[2][0],false))} - ${fmt(shift(frost,c[2][1],false))}`;
 
-  table.innerHTML+=`
+  table.innerHTML += `
   <tr>
-  <td>${c[0]}</td>
-  <td>${indoor}</td>
-  <td>${c[3]}</td>
-  <td>${out}</td>
+    <td>${c[0]}</td>
+    <td>${indoor}</td>
+    <td>${c[3]}</td>
+    <td>${out}</td>
   </tr>`;
  });
 
- status.innerText="Done";
-}
-
+ status.innerText = "Done";
+};
 </script>
 
 </body>
