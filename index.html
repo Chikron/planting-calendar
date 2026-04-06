@@ -44,9 +44,20 @@
     }
 
     .hero {
-      padding: 24px;
+      position: relative;
+      padding: 24px 180px 24px 24px;
     }
 
+    .hero-logo {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+    
     h1 {
       margin: 0 0 10px;
       font-size: clamp(1.8rem, 3vw, 2.6rem);
@@ -259,19 +270,32 @@
     }
 
     @media (max-width: 980px) {
-      .toolbar, .grid {
-        grid-template-columns: 1fr;
-      }
+  .toolbar, .grid {
+    grid-template-columns: 1fr;
+  }
 
-      button {
-        height: 54px;
-      }
-    }
+  button {
+    height: 54px;
+  }
+
+  .hero {
+    padding: 24px;
+  }
+
+  .hero-logo {
+    position: static;
+    display: block;
+    margin: 0 0 16px auto;
+    width: 90px;
+    height: 90px;
+  }
+}
   </style>
 </head>
 <body>
   <div class="wrap">
     <section class="hero">
+      <img src="noi-logo.gif" alt="Nation of Islam logo" class="hero-logo">
       <h1>The Do For Self: Interactive Planting Calendar</h1>
       <p class="sub">
         Enter a U.S. ZIP code. The backend will verify what it can, then build the vegetable calendar from the median last spring frost date.
