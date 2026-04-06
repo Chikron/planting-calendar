@@ -204,7 +204,7 @@ function isZipQuery(value) {
 }
 
 function isCityStateQuery(value) {
-  return /^[A-Za-z .'-]+,\s*[A-Za-z]{2,}$/.test(value);
+  return /^[A-Za-z .'-]+,\s*[A-Za-z]{2}$/.test(value);
 }
 
 function formatDate(date) {
@@ -214,7 +214,7 @@ function formatDate(date) {
 function shiftWeeks(date, weeks, direction) {
   const d = new Date(date);
   const sign = direction === 'before' ? -1 : 1;
-  d.setDate(d.getDate() + (weeks * 7 * sign));
+  d.setDate(d.getDate() + weeks * 7 * sign);
   return d;
 }
 
@@ -248,7 +248,7 @@ async function fetchJson(url, { timeoutMs = 8000, retries = 2, headers = {} } = 
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
           ...headers
         },
         signal: controller.signal
@@ -273,37 +273,19 @@ async function fetchJson(url, { timeoutMs = 8000, retries = 2, headers = {} } = 
   throw lastError || new Error('Request failed.');
 }
 
+async function fetchZipLocation(zip) {
+  const data = await fetchJson(`https://api.zippopotam.us/us/${zip}`);
+  const place = data && Array.isArray(data.places) && data.places[0] ? data.places[0] : null;
+
+  if (!place) {
+    throw new Error('ZIP location not found.');
+  }
+
   return {
     city: place['place name'] || '',
-    state: place['state abbreviation'] || place['state'] || '',
-    latitude: place['latitude'] || '',
-    longitude: place['longitude'] || ''
+    state: place['state abbreviation'] || place['state'] || ''
   };
 }
-
-async function fetchLocationFromCityState(query) {
-  const parts = query.split(',');
-  const city = (parts[0] || '').trim();
-  const state = (parts[1] || '').trim();
-
-  if (!city || !state) {
-    throw new Error('City, State format is invalid.');
-  }
-
-    if (!Array.isArray(data) || !data[0]) {
-    throw new Error('City, State location not found.');
-  }
-
-  return {
-    city,
-    state,
-    latitude: data[0].lat,
-    longitude: data[0].lon
-  };
-}
-
-async function fetchZipFromCoordinates(lat, lon) {
-  const url = `https://geocode.maps.co/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&format=json`;
 
 async function fetchZipFromCityState(query) {
   const parts = query.split(',');
@@ -314,9 +296,7 @@ async function fetchZipFromCityState(query) {
     throw new Error('City, State format is invalid.');
   }
 
-  const citySlug = city.replace(/\s+/g, '%20');
-  const url = `https://api.zippopotam.us/us/${encodeURIComponent(state)}/${citySlug}`;
-
+  const url = `https://api.zippopotam.us/us/${encodeURIComponent(state)}/${encodeURIComponent(city)}`;
   const data = await fetchJson(url, { timeoutMs: 8000, retries: 2 });
 
   if (!data || !Array.isArray(data.places) || !data.places.length) {
@@ -324,7 +304,7 @@ async function fetchZipFromCityState(query) {
   }
 
   const firstPlace = data.places[0];
-  const zip = firstPlace['post code'] || data['post code'] || null;
+  const zip = data['post code'] || firstPlace['post code'] || null;
 
   if (!zip || !/^\d{5}$/.test(String(zip))) {
     throw new Error('City, State lookup did not return a valid 5-digit ZIP code.');
@@ -336,8 +316,8 @@ async function fetchZipFromCityState(query) {
     state: firstPlace['state abbreviation'] || state
   };
 }
-  
-  async function fetchZone(zip) {
+
+async function fetchZone(zip) {
   const data = await fetchJson(`https://phzmapi.org/${zip}.json`);
   if (!data || !data.zone) {
     throw new Error('Zone result missing.');
@@ -363,9 +343,10 @@ async function fetchFrost(zip) {
   return {
     lastFrostDate,
     weatherStation: data && data.weather_station && data.weather_station.name ? data.weather_station.name : '',
-    stationDistanceKm: data && data.weather_station && data.weather_station.distance_km != null
-      ? Number(data.weather_station.distance_km).toFixed(1)
-      : ''
+    stationDistanceKm:
+      data && data.weather_station && data.weather_station.distance_km != null
+        ? Number(data.weather_station.distance_km).toFixed(1)
+        : ''
   };
 }
 
@@ -413,38 +394,46 @@ module.exports = async function handler(req, res) {
 
   const cacheKey = query.toLowerCase();
   const cached = globalCache.get(cacheKey);
-  if (cached && (Date.now() - cached.savedAt < CACHE_TTL_MS)) {
+  if (cached && Date.now() - cached.savedAt < CACHE_TTL_MS) {
     return sendJson(res, 200, cached.payload);
   }
 
   try {
     let zip = '';
-let inputLocation = null;
+    let inputLocation = null;
 
-if (isZipQuery(query)) {
-  zip = query;
-} else if (isCityStateQuery(query)) {
-  inputLocation = await fetchZipFromCityState(query);
-  zip = inputLocation.zip;
-} else {
-  return sendJson(res, 400, {
-    ok: false,
-    error: 'Use either a 5-digit ZIP code or City, State.'
-  });
-}
+    if (isZipQuery(query)) {
+      zip = query;
+    } else if (isCityStateQuery(query)) {
+      inputLocation = await fetchZipFromCityState(query);
+      zip = inputLocation.zip;
+    } else {
+      return sendJson(res, 400, {
+        ok: false,
+        error: 'Use either a 5-digit ZIP code or City, State with a 2-letter state code.'
+      });
+    }
 
-    const [zipLocation, zone, frost] = await Promise.allSettled([
+    const [zipLocationResult, zoneResult, frostResult] = await Promise.allSettled([
       fetchZipLocation(zip),
       fetchZone(zip),
       fetchFrost(zip)
     ]);
 
-    const location = zipLocation.status === 'fulfilled'
-      ? zipLocation.value
-      : inputLocation;
+    const location =
+      zipLocationResult.status === 'fulfilled'
+        ? zipLocationResult.value
+        : inputLocation;
 
-    const zoneValue = zone.status === 'fulfilled' ? zone.value : null;
-    const frostValue = frost.status === 'fulfilled' ? frost.value : null;
+    const zoneValue =
+      zoneResult.status === 'fulfilled'
+        ? zoneResult.value
+        : null;
+
+    const frostValue =
+      frostResult.status === 'fulfilled'
+        ? frostResult.value
+        : null;
 
     if (!frostValue) {
       return sendJson(res, 502, {
@@ -491,9 +480,15 @@ if (isZipQuery(query)) {
     return sendJson(res, 200, payload);
   } catch (error) {
     console.error(error);
+
+    const message =
+      error instanceof Error && error.message
+        ? error.message
+        : 'Live lookup failed for this search. The backend did not return values because it could not verify the required frost data.';
+
     return sendJson(res, 502, {
       ok: false,
-      error: 'Live lookup failed for this search. The backend did not return values because it could not verify the required frost data.'
+      error: message
     });
   }
 };
