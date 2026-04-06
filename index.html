@@ -17,9 +17,18 @@
       --ok: #86efac;
       --warn: #fbbf24;
       --shadow: 0 14px 40px rgba(0,0,0,.28);
+      --radius: 18px;
+      --focus: 0 0 0 3px rgba(125, 211, 252, 0.35);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
 
     body {
       margin: 0;
@@ -28,55 +37,68 @@
         radial-gradient(circle at top left, rgba(125,211,252,.10), transparent 28%),
         linear-gradient(180deg, #0a1021 0%, #0b1020 100%);
       color: var(--text);
+      overflow-x: hidden;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
     }
 
     .wrap {
       max-width: 1380px;
       margin: 0 auto;
-      padding: 24px 16px 48px;
+      padding: 20px 14px 40px;
     }
 
-    .hero, .panel {
+    .hero,
+    .panel {
       background: var(--panel);
-      border-radius: 18px;
+      border-radius: var(--radius);
       box-shadow: var(--shadow);
       border: 1px solid rgba(255,255,255,.06);
     }
 
     .hero {
       position: relative;
-      padding: 24px 180px 24px 24px;
+      padding: 22px 170px 22px 22px;
+      overflow: hidden;
     }
 
     .hero-logo {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
-  border-radius: 50%;
-}
-    
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 104px;
+      height: 104px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
     h1 {
       margin: 0 0 10px;
-      font-size: clamp(1.8rem, 3vw, 2.6rem);
-      line-height: 1.1;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      overflow-wrap: anywhere;
     }
 
     .sub {
       margin: 0;
       color: var(--muted);
-      line-height: 1.6;
-      max-width: 1040px;
+      line-height: 1.55;
+      max-width: 1020px;
+      font-size: clamp(1rem, 2vw, 1.05rem);
     }
 
     .toolbar {
       display: grid;
-      grid-template-columns: minmax(240px, 320px) 180px;
+      grid-template-columns: minmax(220px, 320px) minmax(180px, 220px);
       gap: 12px;
       margin-top: 18px;
       align-items: end;
+      max-width: 560px;
     }
 
     .field {
@@ -84,22 +106,25 @@
       border: 1px solid rgba(255,255,255,.08);
       border-radius: 14px;
       padding: 10px 12px;
+      min-width: 0;
     }
 
     .field label {
       display: block;
-      font-size: .8rem;
+      font-size: .82rem;
       color: var(--muted);
       margin-bottom: 8px;
     }
 
     .field input {
       width: 100%;
+      min-width: 0;
       background: transparent;
       border: none;
       outline: none;
       color: var(--text);
       font-size: 1rem;
+      line-height: 1.3;
       font-family: inherit;
     }
 
@@ -109,15 +134,18 @@
     }
 
     button {
-      height: 58px;
+      min-height: 58px;
       border: none;
       border-radius: 14px;
       background: linear-gradient(135deg, var(--accent), #60a5fa);
       color: #071224;
       font-weight: 700;
       font-size: 1rem;
+      line-height: 1.2;
       cursor: pointer;
-      padding: 0 18px;
+      padding: 12px 18px;
+      width: 100%;
+      touch-action: manipulation;
     }
 
     button:disabled {
@@ -125,11 +153,19 @@
       cursor: wait;
     }
 
+    input:focus,
+    button:focus {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+
     .status {
       margin-top: 14px;
       color: var(--muted);
-      min-height: 22px;
-      font-size: .95rem;
+      min-height: 24px;
+      font-size: .98rem;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
     }
 
     .status.good { color: var(--ok); }
@@ -138,7 +174,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: 340px 1fr;
+      grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
       gap: 18px;
       margin-top: 18px;
       align-items: start;
@@ -146,11 +182,13 @@
 
     .panel {
       padding: 18px;
+      min-width: 0;
     }
 
     .panel h2 {
       margin: 0 0 14px;
-      font-size: 1.05rem;
+      font-size: 1.08rem;
+      line-height: 1.3;
     }
 
     .facts {
@@ -163,6 +201,7 @@
       border-radius: 14px;
       background: rgba(255,255,255,.035);
       border: 1px solid rgba(255,255,255,.06);
+      min-width: 0;
     }
 
     .fact .k {
@@ -174,8 +213,11 @@
     }
 
     .fact .v {
-      font-size: 1.02rem;
+      font-size: 1rem;
       font-weight: 700;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .badge {
@@ -189,6 +231,7 @@
       border: 1px solid rgba(255,255,255,.08);
       background: rgba(255,255,255,.045);
       color: var(--text);
+      white-space: nowrap;
     }
 
     .badge.verified {
@@ -214,20 +257,23 @@
       padding-top: 14px;
       border-top: 1px solid var(--line);
       color: var(--muted);
-      font-size: .9rem;
+      font-size: .92rem;
       line-height: 1.55;
+      overflow-wrap: anywhere;
     }
 
     .table-wrap {
-      overflow: auto;
+      overflow-x: auto;
+      overflow-y: hidden;
       border-radius: 14px;
       border: 1px solid rgba(255,255,255,.07);
+      -webkit-overflow-scrolling: touch;
     }
 
     table {
       width: 100%;
+      min-width: 1180px;
       border-collapse: collapse;
-      min-width: 1340px;
       background: rgba(255,255,255,.02);
     }
 
@@ -241,6 +287,7 @@
       border-bottom: 1px solid var(--line);
       font-size: .84rem;
       letter-spacing: .04em;
+      white-space: nowrap;
     }
 
     td, th {
@@ -250,12 +297,17 @@
       padding: 12px 10px;
     }
 
+    td {
+      line-height: 1.4;
+    }
+
     tbody tr:hover {
       background: rgba(125,211,252,.04);
     }
 
     .crop {
       font-weight: 700;
+      white-space: nowrap;
     }
 
     .foot {
@@ -263,39 +315,136 @@
       color: var(--muted);
       font-size: .9rem;
       line-height: 1.55;
+      overflow-wrap: anywhere;
     }
 
     .hidden {
       display: none;
     }
 
+    @media (max-width: 1100px) {
+      .hero {
+        padding-right: 150px;
+      }
+
+      .hero-logo {
+        width: 92px;
+        height: 92px;
+      }
+    }
+
     @media (max-width: 980px) {
-  .toolbar, .grid {
-    grid-template-columns: 1fr;
-  }
+      .wrap {
+        padding: 16px 12px 32px;
+      }
 
-  button {
-    height: 54px;
-  }
+      .hero {
+        padding: 18px;
+      }
 
-  .hero {
-    padding: 24px;
-  }
+      .hero-logo {
+        position: static;
+        width: 82px;
+        height: 82px;
+        margin: 0 0 14px auto;
+      }
 
-  .hero-logo {
-    position: static;
-    display: block;
-    margin: 0 0 16px auto;
-    width: 90px;
-    height: 90px;
-  }
-}
+      .toolbar,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        max-width: none;
+      }
+
+      button {
+        min-height: 54px;
+      }
+
+      .panel {
+        padding: 16px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .wrap {
+        padding: 12px 10px 24px;
+      }
+
+      .hero,
+      .panel {
+        border-radius: 14px;
+      }
+
+      .hero {
+        padding: 16px;
+      }
+
+      .hero-logo {
+        width: 72px;
+        height: 72px;
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        font-size: clamp(1.8rem, 9vw, 2.4rem);
+      }
+
+      .sub {
+        font-size: .98rem;
+      }
+
+      .field {
+        padding: 10px;
+      }
+
+      .field label {
+        font-size: .8rem;
+      }
+
+      .field input,
+      button {
+        font-size: 1rem;
+      }
+
+      td, th {
+        padding: 10px 8px;
+      }
+
+      .status,
+      .foot,
+      .note-box {
+        font-size: .9rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .hero {
+        padding: 14px;
+      }
+
+      .panel {
+        padding: 14px;
+      }
+
+      .hero-logo {
+        width: 64px;
+        height: 64px;
+      }
+
+      .badge {
+        white-space: normal;
+        text-align: center;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <section class="hero">
       <img src="th_noi-seal.gif" alt="Nation of Islam logo" class="hero-logo">
+
       <h1>The Do For Self: Interactive Planting Calendar</h1>
       <p class="sub">
         Enter a U.S. ZIP code. The backend will verify what it can, then build the vegetable calendar from the median last spring frost date.
@@ -471,7 +620,6 @@
     zipInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') buildCalendar();
     });
-
-      </script>
+  </script>
 </body>
 </html>
