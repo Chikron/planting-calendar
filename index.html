@@ -1,145 +1,454 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planting Calendar</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planting Calendar by ZIP Code</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121933;
+      --panel-2: #162147;
+      --text: #eef3ff;
+      --muted: #aeb9d6;
+      --line: #2a3766;
+      --accent: #7dd3fc;
+      --danger: #fca5a5;
+      --ok: #86efac;
+      --warn: #fbbf24;
+      --shadow: 0 14px 40px rgba(0,0,0,.28);
+    }
 
-<style>
-body { font-family: Arial; background:#0b1020; color:white; padding:20px; }
-input,button{padding:10px;border-radius:6px;border:none;}
-button{background:#7dd3fc;cursor:pointer;}
-table{width:100%;margin-top:20px;border-collapse:collapse;}
-th,td{padding:10px;border-bottom:1px solid #2a3766;text-align:center;}
-.panel{margin-top:20px;}
-</style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(125,211,252,.10), transparent 28%),
+        linear-gradient(180deg, #0a1021 0%, #0b1020 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    .hero, .panel {
+      background: var(--panel);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .hero {
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      line-height: 1.1;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 1040px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(240px, 320px) 180px;
+      gap: 12px;
+      margin-top: 18px;
+      align-items: end;
+    }
+
+    .field {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+
+    .field label {
+      display: block;
+      font-size: .8rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .field input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 1rem;
+      font-family: inherit;
+    }
+
+    .field input::placeholder {
+      color: #c8d2eb;
+      opacity: .9;
+    }
+
+    button {
+      height: 58px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), #60a5fa);
+      color: #071224;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0 18px;
+    }
+
+    button:disabled {
+      opacity: .72;
+      cursor: wait;
+    }
+
+    .status {
+      margin-top: 14px;
+      color: var(--muted);
+      min-height: 22px;
+      font-size: .95rem;
+    }
+
+    .status.good { color: var(--ok); }
+    .status.bad { color: var(--danger); }
+    .status.warn { color: var(--warn); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 18px;
+      margin-top: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 1.05rem;
+    }
+
+    .facts {
+      display: grid;
+      gap: 10px;
+    }
+
+    .fact {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .fact .k {
+      font-size: .76rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 6px;
+    }
+
+    .fact .v {
+      font-size: 1.02rem;
+      font-weight: 700;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: .82rem;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.045);
+      color: var(--text);
+    }
+
+    .badge.verified {
+      color: #061a0d;
+      background: var(--ok);
+      border-color: transparent;
+    }
+
+    .badge.partial {
+      color: #241600;
+      background: var(--warn);
+      border-color: transparent;
+    }
+
+    .badge.unverified {
+      color: #260606;
+      background: var(--danger);
+      border-color: transparent;
+    }
+
+    .note-box {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.55;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.07);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1340px;
+      background: rgba(255,255,255,.02);
+    }
+
+    thead th {
+      background: var(--panel-2);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      text-align: center;
+      padding: 14px 10px;
+      border-bottom: 1px solid var(--line);
+      font-size: .84rem;
+      letter-spacing: .04em;
+    }
+
+    td, th {
+      border-bottom: 1px solid var(--line);
+      text-align: center;
+      vertical-align: middle;
+      padding: 12px 10px;
+    }
+
+    tbody tr:hover {
+      background: rgba(125,211,252,.04);
+    }
+
+    .crop {
+      font-weight: 700;
+    }
+
+    .foot {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.55;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 980px) {
+      .toolbar, .grid {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        height: 54px;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Interactive Planting Calendar</h1>
+      <p class="sub">
+        Enter a U.S. ZIP code. The backend will verify what it can, then build the vegetable calendar from the median last spring frost date.
+        If some lookup data cannot be verified, the page will tell you clearly instead of inventing values.
+      </p>
 
-<h1>Planting Calendar (Real Data Enabled)</h1>
+      <div class="toolbar">
+        <div class="field">
+          <label for="zip">ZIP Code</label>
+          <input id="zip" type="text" inputmode="numeric" maxlength="5" placeholder="Enter Zip Code" />
+        </div>
+        <button id="go">Build Calendar</button>
+      </div>
 
-<input id="zip" placeholder="63123">
-<button onclick="run()">Build</button>
+      <div class="status" id="status">Ready.</div>
+    </section>
 
-<div id="status"></div>
-<div id="facts"></div>
+    <section class="grid hidden" id="results">
+      <aside class="panel">
+        <h2>Location Snapshot</h2>
+        <div class="facts" id="facts"></div>
 
-<table>
-<thead>
-<tr>
-<th>Vegetable</th>
-<th>Start Indoors</th>
-<th>Ideal Temp</th>
-<th>Plant Outside</th>
-</tr>
-</thead>
-<tbody id="table"></tbody>
-</table>
+        <div class="note-box" id="lookupNote">
+          Lookup details will appear here.
+        </div>
+      </aside>
 
-<script>
+      <section class="panel">
+        <h2>Vegetable Calendar</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Vegetable</th>
+                <th>Start Indoors</th>
+                <th>Ideal Indoor Temp (°F)</th>
+                <th>Plant Outside</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="calendarBody"></tbody>
+          </table>
+        </div>
 
-function fmt(d){return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});}
-function shift(d,w,b=true){let x=new Date(d);x.setDate(x.getDate()+(w*7*(b?-1:1)));return x;}
-function valid(z){return /^\d{5}$/.test(z);}
+        <div class="foot">
+          “Direct sow” means seed directly outdoors. Cool-season crops are timed from the median last spring frost date. Warm-season crops use a safer outdoor anchor 14 days after that frost date.
+        </div>
+      </section>
+    </section>
+  </div>
 
-// fallback estimator
-function estimate(zip){
- let frost=new Date(new Date().getFullYear(),3,15);
- return {zone:"Estimated",frost};
-}
+  <script>
+    const zipInput = document.getElementById('zip');
+    const goBtn = document.getElementById('go');
+    const statusEl = document.getElementById('status');
+    const resultsEl = document.getElementById('results');
+    const factsEl = document.getElementById('facts');
+    const calendarBody = document.getElementById('calendarBody');
+    const lookupNoteEl = document.getElementById('lookupNote');
 
-const crops=[
-["Tomato",[8,6],[1,2],"70–80"],
-["Pepper",[10,8],[2,3],"75–85"],
-["Cucumber",[4,3],[1,2],"70–80"],
-["Zucchini",[3,2],[1,1],"70–80"],
-["Beans",null,[1,2],"65–75"],
-["Peas",null,[-6,-4],"60–70"],
-["Lettuce",null,[-4,-2],"60–70"],
-["Spinach",null,[-6,-4],"55–65"],
-["Broccoli",[6,4],[-2,-1],"60–70"],
-["Cabbage",[6,4],[-4,-2],"60–70"],
-["Carrot",null,[-4,-2],"60–70"],
-["Radish",null,[-6,-4],"55–65"]
-];
+    function setStatus(message, kind = 'normal') {
+      statusEl.textContent = message;
+      statusEl.classList.remove('good', 'bad', 'warn');
+      if (kind === 'good') statusEl.classList.add('good');
+      if (kind === 'bad') statusEl.classList.add('bad');
+      if (kind === 'warn') statusEl.classList.add('warn');
+    }
 
-async function getZone(zip){
- try{
-  let r=await fetch(`https://phzmapi.org/${zip}.json`);
-  let j=await r.json();
-  return j.zone;
- }catch{return null;}
-}
+    function badgeClass(state) {
+      if (state === 'verified') return 'verified';
+      if (state === 'partial') return 'partial';
+      return 'unverified';
+    }
 
-async function getFrost(zip){
- try{
-  let r=await fetch(`https://apis.joelgrant.dev/api/v1/frost/${zip}`);
-  let j=await r.json();
-  return j.data.frost_dates.last_frost_32f["50"];
- }catch{return null;}
-}
+    function badgeLabel(state) {
+      if (state === 'verified') return 'Verified';
+      if (state === 'partial') return 'Partial';
+      return 'Unverified';
+    }
 
-async function run(){
- let zip=document.getElementById("zip").value;
+    function renderFacts(data) {
+      factsEl.innerHTML = `
+        <div class="fact">
+          <div class="k">ZIP Code</div>
+          <div class="v">${data.zip}</div>
+        </div>
+        <div class="fact">
+          <div class="k">Location</div>
+          <div class="v">${data.locationDisplay || '—'}</div>
+        </div>
+        <div class="fact">
+          <div class="k">USDA Zone</div>
+          <div class="v">${data.zone || 'Unavailable'}</div>
+        </div>
+        <div class="fact">
+          <div class="k">Median Last Spring Frost</div>
+          <div class="v">${data.lastFrostDisplay || 'Unavailable'}</div>
+        </div>
+        <div class="fact">
+          <div class="k">Safe Warm-Season Start</div>
+          <div class="v">${data.safeWarmStartDisplay || 'Unavailable'}</div>
+        </div>
+        <div class="fact">
+          <div class="k">Nearest Frost Station</div>
+          <div class="v">${data.weatherStation || '—'}</div>
+        </div>
+        <div class="fact">
+          <div class="k">Verification State</div>
+          <div class="v"><span class="badge ${badgeClass(data.verification)}">${badgeLabel(data.verification)}</span></div>
+        </div>
+      `;
 
- if(!valid(zip)){
-  status.innerText="Invalid ZIP";
-  return;
- }
+      lookupNoteEl.textContent = data.lookupNote || '';
+    }
 
- status.innerText="Loading real data...";
+    function renderCalendar(rows) {
+      calendarBody.innerHTML = rows.map(row => `
+        <tr>
+          <td class="crop">${row.vegetable}</td>
+          <td>${row.startIndoors}</td>
+          <td>${row.idealIndoorTemp}</td>
+          <td>${row.plantOutside}</td>
+          <td>${row.notes}</td>
+        </tr>
+      `).join('');
+    }
 
- let zone=await getZone(zip);
- let frost=await getFrost(zip);
+    async function buildCalendar() {
+      const zip = String(zipInput.value || '').trim();
 
- let data;
+      if (!/^\d{5}$/.test(zip)) {
+        setStatus('Enter a valid 5-digit U.S. ZIP code.', 'bad');
+        resultsEl.classList.add('hidden');
+        return;
+      }
 
- if(zone && frost){
-  let [m,d]=frost.split("/");
-  data={
-   zone,
-   frost:new Date(new Date().getFullYear(),m-1,d),
-   real:true
-  };
- }else{
-  data=estimate(zip);
-  data.real=false;
- }
+      goBtn.disabled = true;
+      setStatus('Looking up ZIP, zone, and frost date...');
 
- facts.innerHTML=`
- <b>ZIP:</b> ${zip}<br>
- <b>Zone:</b> ${data.zone}<br>
- <b>Last Frost:</b> ${fmt(data.frost)}<br>
- <b>Mode:</b> ${data.real?"Real Data":"Estimated"}
- `;
+      try {
+        const res = await fetch(`/api/planting?zip=${encodeURIComponent(zip)}`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
 
- table.innerHTML="";
+        const data = await res.json();
 
- crops.forEach(c=>{
-  let indoor="Direct sow";
-  if(c[1]) indoor=`${fmt(shift(data.frost,c[1][0]))} - ${fmt(shift(data.frost,c[1][1]))}`;
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || 'Lookup failed.');
+        }
 
-  let out;
-  if(c[2][0]<0){
-   out=`${fmt(shift(data.frost,Math.abs(c[2][0])))} - ${fmt(shift(data.frost,Math.abs(c[2][1])))}`
-  } else {
-   out=`${fmt(shift(data.frost,c[2][0],false))} - ${fmt(shift(data.frost,c[2][1],false))}`
-  }
+        renderFacts(data);
+        renderCalendar(data.calendar);
+        resultsEl.classList.remove('hidden');
 
-  table.innerHTML+=`
-  <tr>
-  <td>${c[0]}</td>
-  <td>${indoor}</td>
-  <td>${c[3]}</td>
-  <td>${out}</td>
-  </tr>`;
- });
+        if (data.verification === 'verified') {
+          setStatus('Calendar built with verified zone and frost data.', 'good');
+        } else if (data.verification === 'partial') {
+          setStatus('Calendar built with partial verification. Read the note on the left.', 'warn');
+        } else {
+          setStatus('Calendar could not be verified.', 'bad');
+        }
+      } catch (error) {
+        console.error(error);
+        resultsEl.classList.add('hidden');
+        setStatus(error.message || 'Lookup failed.', 'bad');
+      } finally {
+        goBtn.disabled = false;
+      }
+    }
 
- status.innerText="Done";
-}
+    goBtn.addEventListener('click', buildCalendar);
+    zipInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') buildCalendar();
+    });
 
-</script>
-
+    zipInput.value = '48310';
+  </script>
 </body>
 </html>
