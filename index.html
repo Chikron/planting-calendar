@@ -525,6 +525,7 @@ td {
   <script>
     const zipInput = document.getElementById('zip');
     const goBtn = document.getElementById('go');
+    const locationInput = document.getElementById('locationInput');
     const statusEl = document.getElementById('status');
     const resultsEl = document.getElementById('results');
     const factsEl = document.getElementById('facts');
@@ -599,8 +600,15 @@ td {
     }
 
     async function buildCalendar() {
-      const zip = String(zipInput.value || '').trim();
 
+const query = String(locationInput.value || '').trim();
+
+if (!query) {
+  setStatus('Enter a ZIP code or City, State.', 'bad');
+  resultsEl.classList.add('hidden');
+  return;
+}
+      
       if (!/^\d{5}$/.test(zip)) {
         setStatus('Enter a valid 5-digit U.S. ZIP code.', 'bad');
         resultsEl.classList.add('hidden');
@@ -611,7 +619,7 @@ td {
       setStatus('Looking up ZIP, zone, and frost date...');
 
       try {
-        const res = await fetch(`/api/planting?zip=${encodeURIComponent(zip)}`, {
+        const res = await fetch(`/api/planting?query=${encodeURIComponent(query)}`, {
           method: 'GET',
           headers: { 'Accept': 'application/json' }
         });
