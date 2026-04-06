@@ -1,12 +1,623 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planting Calendar</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planting Calendar by ZIP Code</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121933;
+      --panel-2: #182246;
+      --text: #eef3ff;
+      --muted: #aeb9d6;
+      --line: #2a3766;
+      --accent: #7dd3fc;
+      --accent-2: #86efac;
+      --warn: #fbbf24;
+      --danger: #fca5a5;
+      --shadow: 0 14px 40px rgba(0,0,0,.28);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(125,211,252,.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(134,239,172,.12), transparent 24%),
+        linear-gradient(180deg, #0a1021 0%, #0b1020 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 18px 60px;
+    }
+
+    .hero {
+      background: linear-gradient(180deg, rgba(24,34,70,.95), rgba(18,25,51,.92));
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.8rem, 3vw, 2.7rem);
+      line-height: 1.08;
+      letter-spacing: -.02em;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      max-width: 860px;
+      line-height: 1.6;
+      font-size: 1rem;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr auto;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .field {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding: 12px 14px;
+    }
+
+    .field label {
+      display: block;
+      font-size: .82rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .field input, .field select {
+      width: 100%;
+      background: transparent;
+      border: 0;
+      outline: none;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .field select option { color: #111827; }
+
+    button {
+      border: 0;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), #60a5fa);
+      color: #071224;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 0 18px;
+      min-height: 72px;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(96,165,250,.25);
+      transition: transform .15s ease, opacity .15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:disabled { opacity: .6; cursor: wait; transform: none; }
+
+    .status {
+      margin-top: 14px;
+      min-height: 22px;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 18px;
+      margin-top: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(18,25,51,.96), rgba(16,22,44,.92));
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 1.05rem;
+      letter-spacing: -.01em;
+    }
+
+    .facts {
+      display: grid;
+      gap: 10px;
+    }
+
+    .fact {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .fact .k {
+      font-size: .76rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 6px;
+    }
+
+    .fact .v {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .chip {
+      font-size: .82rem;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.045);
+      color: var(--text);
+    }
+
+    .legend {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.55;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.07);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      background: rgba(255,255,255,.02);
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: #162147;
+      text-align: left;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #c9d6f5;
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    tbody td {
+      padding: 13px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      vertical-align: top;
+    }
+
+    tbody tr:hover {
+      background: rgba(125,211,252,.035);
+    }
+
+    .crop {
+      font-weight: 700;
+    }
+
+    .notes {
+      color: var(--muted);
+      font-size: .92rem;
+      line-height: 1.45;
+    }
+
+    .foot {
+      margin-top: 16px;
+      font-size: .88rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 920px) {
+      .toolbar, .grid {
+        grid-template-columns: 1fr;
+      }
+      button { min-height: 58px; }
+    }
+  </style>
 </head>
 <body>
-    <h1>Welcome to the Planting Calendar</h1>
-    <p>Stay tuned for updates!</p>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Interactive Planting Calendar</h1>
+      <p class="sub">
+        Enter any U.S. ZIP code to look up the hardiness zone, pull frost data, and calculate seed-starting and planting dates for common vegetables.
+        This tool uses a ZIP-to-zone source plus frost-date data, then counts backward or forward from the selected spring frost threshold.
+      </p>
+
+      <div class="toolbar">
+        <div class="field">
+          <label for="zip">U.S. ZIP code</label>
+          <input id="zip" type="text" inputmode="numeric" maxlength="5" placeholder="63123" />
+        </div>
+        <div class="field">
+          <label for="risk">Planning mode</label>
+          <select id="risk">
+            <option value="90">Conservative (90% last frost)</option>
+            <option value="50" selected>Average (50% last frost)</option>
+            <option value="10">Aggressive (10% last frost)</option>
+          </select>
+        </div>
+        <button id="go">Build Calendar</button>
+      </div>
+
+      <div class="status" id="status">Ready.</div>
+    </section>
+
+    <section class="grid hidden" id="results">
+      <aside class="panel">
+        <h2>Location Snapshot</h2>
+        <div class="facts" id="facts"></div>
+        <div class="chips" id="chips"></div>
+        <div class="legend">
+          The date engine uses the selected spring frost probability. Conservative mode waits for a later, safer last frost date. Aggressive mode starts earlier and accepts more frost risk.
+        </div>
+      </aside>
+
+      <section class="panel">
+        <h2>Vegetable Calendar</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Vegetable</th>
+                <th>Start Indoors</th>
+                <th>Transplant / Direct Sow</th>
+                <th>Timing Basis</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="calendarBody"></tbody>
+          </table>
+        </div>
+        <div class="foot">
+          For warm-season crops, use the last frost date as the main anchor. For cool-season crops, the tool surfaces earlier sowing or transplant windows. Always check the seed packet for variety-specific timing, soil temperature, and days to maturity.
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    const CROP_RULES = [
+      {
+        crop: 'Tomato',
+        indoor: [8, 6],
+        outdoor: { type: 'transplant', from: 1, to: 2, relative: 'after' },
+        basis: 'Indoor sow 6–8 weeks before last frost; transplant 1–2 weeks after.',
+        notes: 'Warm-season crop. Wait for warm soil and stable night temperatures.'
+      },
+      {
+        crop: 'Pepper',
+        indoor: [10, 8],
+        outdoor: { type: 'transplant', from: 2, to: 3, relative: 'after' },
+        basis: 'Indoor sow 8–10 weeks before last frost; transplant 2–3 weeks after.',
+        notes: 'Needs more warmth than tomato. Avoid cold nights.'
+      },
+      {
+        crop: 'Broccoli',
+        indoor: [6, 4],
+        outdoor: { type: 'transplant', from: 2, to: 1, relative: 'before' },
+        basis: 'Indoor sow 4–6 weeks before last frost; transplant 1–2 weeks before.',
+        notes: 'Cool-season crop. Spring heat can reduce quality.'
+      },
+      {
+        crop: 'Cabbage',
+        indoor: [6, 4],
+        outdoor: { type: 'transplant', from: 4, to: 2, relative: 'before' },
+        basis: 'Indoor sow 4–6 weeks before last frost; transplant 2–4 weeks before.',
+        notes: 'Handles cool weather well.'
+      },
+      {
+        crop: 'Kale',
+        indoor: [6, 4],
+        outdoor: { type: 'direct sow', from: 4, to: 2, relative: 'before' },
+        basis: 'Start indoors 4–6 weeks before, or direct sow 2–4 weeks before last frost.',
+        notes: 'Very tolerant of cool weather.'
+      },
+      {
+        crop: 'Lettuce',
+        indoor: null,
+        outdoor: { type: 'direct sow', from: 4, to: 2, relative: 'before' },
+        basis: 'Direct sow 2–4 weeks before last frost.',
+        notes: 'Succession sow every 1–2 weeks in cool weather.'
+      },
+      {
+        crop: 'Spinach',
+        indoor: null,
+        outdoor: { type: 'direct sow', from: 6, to: 4, relative: 'before' },
+        basis: 'Direct sow 4–6 weeks before last frost.',
+        notes: 'Prefers cool soil and cool air.'
+      },
+      {
+        crop: 'Pea',
+        indoor: null,
+        outdoor: { type: 'direct sow', from: 6, to: 4, relative: 'before' },
+        basis: 'Direct sow 4–6 weeks before last frost.',
+        notes: 'Best planted early in cool soil.'
+      },
+      {
+        crop: 'Carrot',
+        indoor: null,
+        outdoor: { type: 'direct sow', from: 4, to: 2, relative: 'before' },
+        basis: 'Direct sow 2–4 weeks before last frost.',
+        notes: 'Do not transplant; sow where it will grow.'
+      },
+      {
+        crop: 'Beet',
+        indoor: null,
+        outdoor: { type: 'direct sow', from: 4, to: 2, relative: 'before' },
+        basis: 'Direct sow 2–4 weeks before last frost.',
+        notes: 'Cool-season root crop.'
+      },
+      {
+        crop: 'Radish',
+        indoor: null,
+        outdoor: { type: 'direct sow', from: 6, to: 4, relative: 'before' },
+        basis: 'Direct sow 4–6 weeks before last frost.',
+        notes: 'Fast crop; good for succession sowing.'
+      },
+      {
+        crop: 'Onion',
+        indoor: [10, 8],
+        outdoor: { type: 'transplant', from: 4, to: 2, relative: 'before' },
+        basis: 'Indoor sow 8–10 weeks before last frost; set out 2–4 weeks before.',
+        notes: 'Often grown from sets or transplants.'
+      },
+      {
+        crop: 'Cucumber',
+        indoor: [4, 3],
+        outdoor: { type: 'direct sow', from: 1, to: 2, relative: 'after' },
+        basis: 'Start indoors 3–4 weeks before last frost or direct sow 1–2 weeks after.',
+        notes: 'Warm-season crop. Soil should be warm.'
+      },
+      {
+        crop: 'Zucchini / Summer Squash',
+        indoor: [3, 2],
+        outdoor: { type: 'direct sow', from: 1, to: 1, relative: 'after' },
+        basis: 'Start indoors 2–3 weeks before last frost or direct sow about 1 week after.',
+        notes: 'Transplants can get root-bound fast, so do not start too early.'
+      },
+      {
+        crop: 'Bush Bean',
+        indoor: null,
+        outdoor: { type: 'direct sow', from: 1, to: 2, relative: 'after' },
+        basis: 'Direct sow 1–2 weeks after last frost.',
+        notes: 'Needs warm soil; avoid wet, cold ground.'
+      }
+    ];
+
+    const zipInput = document.getElementById('zip');
+    const riskSelect = document.getElementById('risk');
+    const goBtn = document.getElementById('go');
+    const statusEl = document.getElementById('status');
+    const resultsEl = document.getElementById('results');
+    const factsEl = document.getElementById('facts');
+    const chipsEl = document.getElementById('chips');
+    const calendarBody = document.getElementById('calendarBody');
+
+    function setStatus(msg, isError = false) {
+      statusEl.textContent = msg;
+      statusEl.style.color = isError ? 'var(--danger)' : 'var(--muted)';
+    }
+
+    function parseZip(raw) {
+      const zip = String(raw || '').trim();
+      return /^\d{5}$/.test(zip) ? zip : null;
+    }
+
+    function dateFromMMDD(mmdd) {
+      if (!mmdd) return null;
+      const [m, d] = mmdd.split('/').map(Number);
+      const year = new Date().getFullYear();
+      return new Date(year, m - 1, d);
+    }
+
+    function fmt(date) {
+      if (!date) return '—';
+      return date.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+
+    function shiftWeeks(date, weeks, direction) {
+      const out = new Date(date);
+      const delta = weeks * 7 * (direction === 'before' ? -1 : 1);
+      out.setDate(out.getDate() + delta);
+      return out;
+    }
+
+    function rangeText(start, end) {
+      return `${fmt(start)} – ${fmt(end)}`;
+    }
+
+    async function fetchZoneFromPhzm(zip) {
+      const res = await fetch(`https://phzmapi.org/${zip}.json`, { mode: 'cors' });
+      if (!res.ok) throw new Error('Zone lookup failed.');
+      const data = await res.json();
+      return data?.zone || null;
+    }
+
+    async function fetchFrost(zip) {
+      const res = await fetch(`https://apis.joelgrant.dev/api/v1/frost/${zip}`, { mode: 'cors' });
+      if (!res.ok) throw new Error('Frost lookup failed.');
+      const json = await res.json();
+      return json?.data || null;
+    }
+
+    function buildFacts(zip, zone, frostData, riskKey) {
+      const last = frostData?.frost_dates?.last_frost_32f?.[riskKey] || null;
+      const first = frostData?.frost_dates?.first_frost_32f?.[riskKey] || null;
+      const loc = frostData?.location || {};
+      const station = frostData?.weather_station || {};
+      const frostFree = !!frostData?.frost_free;
+
+      const factList = [
+        ['ZIP code', zip],
+        ['Location', [loc.city, loc.state].filter(Boolean).join(', ') || '—'],
+        ['Hardiness zone', zone || 'Unavailable'],
+        ['Last spring frost', frostFree ? 'No regular frost' : (last || 'Unavailable')],
+        ['First fall frost', frostFree ? 'No regular frost' : (first || 'Unavailable')],
+        ['Nearest station', station.name || 'Unavailable'],
+      ];
+
+      factsEl.innerHTML = factList.map(([k, v]) => `
+        <div class="fact">
+          <div class="k">${k}</div>
+          <div class="v">${v}</div>
+        </div>
+      `).join('');
+
+      chipsEl.innerHTML = '';
+      const chips = [];
+      if (station?.distance_km != null) chips.push(`Station distance: ${Number(station.distance_km).toFixed(1)} km`);
+      chips.push(`Planning mode: ${riskKey}%`);
+      chips.push(frostFree ? 'Frost-free climate' : '32°F frost model');
+
+      chips.forEach(label => {
+        const span = document.createElement('span');
+        span.className = 'chip';
+        span.textContent = label;
+        chipsEl.appendChild(span);
+      });
+    }
+
+    function buildCalendar(frostData, riskKey) {
+      calendarBody.innerHTML = '';
+
+      if (frostData?.frost_free) {
+        calendarBody.innerHTML = `
+          <tr>
+            <td class="crop">Frost-free location</td>
+            <td>Use heat and season length instead of frost windows.</td>
+            <td>Plant warm-season crops during the warmest stable period.</td>
+            <td>No regular 32°F frost dates returned.</td>
+            <td class="notes">In frost-free climates, timing depends more on summer heat, humidity, rainfall pattern, and pest pressure than on a last frost date.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      const lastFrost = dateFromMMDD(frostData?.frost_dates?.last_frost_32f?.[riskKey]);
+      if (!lastFrost) {
+        calendarBody.innerHTML = `
+          <tr>
+            <td colspan="5">No frost date available for this ZIP code.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      const rows = CROP_RULES.map(rule => {
+        const indoor = rule.indoor
+          ? rangeText(
+              shiftWeeks(lastFrost, rule.indoor[0], 'before'),
+              shiftWeeks(lastFrost, rule.indoor[1], 'before')
+            )
+          : 'Usually direct sow';
+
+        let outdoor;
+        if (rule.outdoor.relative === 'before') {
+          outdoor = `${rule.outdoor.type}: ${rangeText(
+            shiftWeeks(lastFrost, rule.outdoor.from, 'before'),
+            shiftWeeks(lastFrost, rule.outdoor.to, 'before')
+          )}`;
+        } else {
+          outdoor = `${rule.outdoor.type}: ${rangeText(
+            shiftWeeks(lastFrost, rule.outdoor.from, 'after'),
+            shiftWeeks(lastFrost, rule.outdoor.to, 'after')
+          )}`;
+        }
+
+        return `
+          <tr>
+            <td class="crop">${rule.crop}</td>
+            <td>${indoor}</td>
+            <td>${outdoor}</td>
+            <td>${rule.basis}</td>
+            <td class="notes">${rule.notes}</td>
+          </tr>
+        `;
+      }).join('');
+
+      calendarBody.innerHTML = rows;
+    }
+
+    async function run() {
+      const zip = parseZip(zipInput.value);
+      const riskKey = riskSelect.value;
+
+      if (!zip) {
+        setStatus('Enter a valid 5-digit U.S. ZIP code.', true);
+        resultsEl.classList.add('hidden');
+        return;
+      }
+
+      goBtn.disabled = true;
+      setStatus('Looking up hardiness zone and frost dates...');
+
+      try {
+        const [zone, frostData] = await Promise.all([
+          fetchZoneFromPhzm(zip).catch(() => null),
+          fetchFrost(zip)
+        ]);
+
+        buildFacts(zip, zone, frostData, riskKey);
+        buildCalendar(frostData, riskKey);
+        resultsEl.classList.remove('hidden');
+        setStatus('Calendar built.');
+      } catch (err) {
+        console.error(err);
+        resultsEl.classList.add('hidden');
+        setStatus('Unable to build the calendar for that ZIP code. Try another ZIP or check whether the data endpoints are reachable from your host.', true);
+      } finally {
+        goBtn.disabled = false;
+      }
+    }
+
+    goBtn.addEventListener('click', run);
+    zipInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') run();
+    });
+
+    zipInput.value = '63123';
+  </script>
 </body>
 </html>
