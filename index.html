@@ -6,42 +6,21 @@
 <title>Planting Calendar</title>
 
 <style>
-body {
-  margin:0;
-  font-family:Arial;
-  background:#0b1020;
-  color:#fff;
-  padding:20px;
-}
-input,button {
-  padding:10px;
-  border-radius:6px;
-  border:none;
-}
-button {
-  background:#7dd3fc;
-  cursor:pointer;
-}
-table {
-  width:100%;
-  margin-top:20px;
-  border-collapse:collapse;
-}
-th,td {
-  padding:10px;
-  border-bottom:1px solid #2a3766;
-  text-align:center;
-}
-.panel { margin-top:20px; }
+body { font-family: Arial; background:#0b1020; color:white; padding:20px; }
+input,button{padding:10px;border-radius:6px;border:none;}
+button{background:#7dd3fc;cursor:pointer;}
+table{width:100%;margin-top:20px;border-collapse:collapse;}
+th,td{padding:10px;border-bottom:1px solid #2a3766;text-align:center;}
+.panel{margin-top:20px;}
 </style>
 </head>
 
 <body>
 
-<h1>Interactive Planting Calendar</h1>
+<h1>Planting Calendar (Real Data Enabled)</h1>
 
-<input id="zip" placeholder="Enter Zip Code">
-<button onclick="run()">Build Calendar</button>
+<input id="zip" placeholder="63123">
+<button onclick="run()">Build</button>
 
 <div id="status"></div>
 <div id="facts"></div>
@@ -51,7 +30,7 @@ th,td {
 <tr>
 <th>Vegetable</th>
 <th>Start Indoors</th>
-<th>Ideal Indoor Temp (°F)</th>
+<th>Ideal Temp</th>
 <th>Plant Outside</th>
 </tr>
 </thead>
@@ -60,101 +39,104 @@ th,td {
 
 <script>
 
-function fmt(d){
-  return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+function fmt(d){return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});}
+function shift(d,w,b=true){let x=new Date(d);x.setDate(x.getDate()+(w*7*(b?-1:1)));return x;}
+function valid(z){return /^\d{5}$/.test(z);}
+
+// fallback estimator
+function estimate(zip){
+ let frost=new Date(new Date().getFullYear(),3,15);
+ return {zone:"Estimated",frost};
 }
 
-function shift(d,w,before=true){
-  let x=new Date(d);
-  x.setDate(x.getDate()+(w*7*(before?-1:1)));
-  return x;
-}
-
-function valid(z){
-  return /^\d{5}$/.test(z);
-}
-
-// REALISTIC SAFE BASELINE (ZONE 6 TYPE)
-function getFrostDate(){
-  return new Date(new Date().getFullYear(),4,15); // May 15
-}
-
-const crops = [
+const crops=[
 ["Tomato",[8,6],[1,2],"70–80"],
 ["Pepper",[10,8],[2,3],"75–85"],
 ["Cucumber",[4,3],[1,2],"70–80"],
-["Zucchini / Squash",[3,2],[1,1],"70–80"],
-["Green Beans",null,[1,2],"65–75"],
+["Zucchini",[3,2],[1,1],"70–80"],
+["Beans",null,[1,2],"65–75"],
 ["Peas",null,[-6,-4],"60–70"],
 ["Lettuce",null,[-4,-2],"60–70"],
 ["Spinach",null,[-6,-4],"55–65"],
 ["Broccoli",[6,4],[-2,-1],"60–70"],
 ["Cabbage",[6,4],[-4,-2],"60–70"],
-["Cauliflower",[6,4],[-2,-1],"60–70"],
-["Brussels Sprouts",[6,4],[-4,-2],"60–70"],
 ["Carrot",null,[-4,-2],"60–70"],
-["Radish",null,[-6,-4],"55–65"],
-["Beet",null,[-4,-2],"60–70"],
-["Onion",[10,8],[-4,-2],"65–75"],
-["Garlic",null,[-8,-6],"60–70"],
-["Leek",[10,8],[-4,-2],"65–75"],
-["Red Potato",null,[0,2],"60–70"],
-["Eggplant",[8,6],[2,3],"75–85"],
-["Okra",[4,3],[2,3],"75–90"],
-["Swiss Chard",null,[-4,-2],"60–70"],
-["Celery",[10,8],[-2,-1],"65–75"],
-["Asparagus",null,[2,4],"60–70"],
-["Artichoke",[8,6],[2,3],"65–75"],
-["Pumpkin",[3,2],[2,3],"70–85"]
+["Radish",null,[-6,-4],"55–65"]
 ];
 
-function run(){
+async function getZone(zip){
+ try{
+  let r=await fetch(`https://phzmapi.org/${zip}.json`);
+  let j=await r.json();
+  return j.zone;
+ }catch{return null;}
+}
 
-  let zip = document.getElementById("zip").value;
+async function getFrost(zip){
+ try{
+  let r=await fetch(`https://apis.joelgrant.dev/api/v1/frost/${zip}`);
+  let j=await r.json();
+  return j.data.frost_dates.last_frost_32f["50"];
+ }catch{return null;}
+}
 
-  if(!valid(zip)){
-    status.innerText="Enter valid ZIP code";
-    return;
+async function run(){
+ let zip=document.getElementById("zip").value;
+
+ if(!valid(zip)){
+  status.innerText="Invalid ZIP";
+  return;
+ }
+
+ status.innerText="Loading real data...";
+
+ let zone=await getZone(zip);
+ let frost=await getFrost(zip);
+
+ let data;
+
+ if(zone && frost){
+  let [m,d]=frost.split("/");
+  data={
+   zone,
+   frost:new Date(new Date().getFullYear(),m-1,d),
+   real:true
+  };
+ }else{
+  data=estimate(zip);
+  data.real=false;
+ }
+
+ facts.innerHTML=`
+ <b>ZIP:</b> ${zip}<br>
+ <b>Zone:</b> ${data.zone}<br>
+ <b>Last Frost:</b> ${fmt(data.frost)}<br>
+ <b>Mode:</b> ${data.real?"Real Data":"Estimated"}
+ `;
+
+ table.innerHTML="";
+
+ crops.forEach(c=>{
+  let indoor="Direct sow";
+  if(c[1]) indoor=`${fmt(shift(data.frost,c[1][0]))} - ${fmt(shift(data.frost,c[1][1]))}`;
+
+  let out;
+  if(c[2][0]<0){
+   out=`${fmt(shift(data.frost,Math.abs(c[2][0])))} - ${fmt(shift(data.frost,Math.abs(c[2][1])))}`
+  } else {
+   out=`${fmt(shift(data.frost,c[2][0],false))} - ${fmt(shift(data.frost,c[2][1],false))}`
   }
 
-  status.innerText="Building calendar...";
+  table.innerHTML+=`
+  <tr>
+  <td>${c[0]}</td>
+  <td>${indoor}</td>
+  <td>${c[3]}</td>
+  <td>${out}</td>
+  </tr>`;
+ });
 
-  let frost = getFrostDate();
-
-  facts.innerHTML = `
-  ZIP: ${zip}<br>
-  Frost Baseline: ${fmt(frost)}<br>
-  Note: Conservative planting model (safe timing)
-  `;
-
-  table.innerHTML="";
-
-  crops.forEach(c=>{
-
-    let indoor="Direct sow";
-
-    if(c[1]){
-      indoor = `${fmt(shift(frost,c[1][0]))} - ${fmt(shift(frost,c[1][1]))}`;
-    }
-
-    let outside;
-
-    if(c[2][0] < 0){
-      outside = `${fmt(shift(frost,Math.abs(c[2][0])))} - ${fmt(shift(frost,Math.abs(c[2][1])))}`
-    } else {
-      outside = `${fmt(shift(frost,c[2][0],false))} - ${fmt(shift(frost,c[2][1],false))}`
-    }
-
-    table.innerHTML += `
-    <tr>
-      <td>${c[0]}</td>
-      <td>${indoor}</td>
-      <td>${c[3]}</td>
-      <td>${outside}</td>
-    </tr>`;
-  });
-
-  status.innerText="Done";
+ status.innerText="Done";
 }
 
 </script>
