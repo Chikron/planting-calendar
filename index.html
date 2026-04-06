@@ -23,7 +23,7 @@ body {
 }
 
 .wrap {
-  max-width:1100px;
+  max-width:1200px;
   margin:auto;
   padding:20px;
 }
@@ -34,17 +34,13 @@ body {
   border-radius:16px;
 }
 
-h1 { margin:0 0 10px; }
-
-.sub { color:var(--muted); }
-
 .toolbar {
   display:flex;
   gap:10px;
   margin-top:15px;
 }
 
-input, select {
+input {
   padding:10px;
   border-radius:8px;
   border:none;
@@ -59,10 +55,7 @@ button {
   cursor:pointer;
 }
 
-.status {
-  margin-top:10px;
-  color:var(--muted);
-}
+.status { margin-top:10px; color:var(--muted); }
 
 .panel {
   margin-top:20px;
@@ -91,7 +84,7 @@ td, th {
 
 <div class="hero">
 <h1>Interactive Planting Calendar</h1>
-<p class="sub">Enter any ZIP code to generate planting dates.</p>
+<p>Enter ZIP code</p>
 
 <div class="toolbar">
 <input id="zip" placeholder="63123" maxlength="5">
@@ -112,6 +105,7 @@ td, th {
 <th>Vegetable</th>
 <th>Start Indoors</th>
 <th>Plant Outside</th>
+<th>Ideal Indoor Temp (°F)</th>
 </tr>
 </thead>
 <tbody id="calendarBody"></tbody>
@@ -129,9 +123,7 @@ const resultsEl = document.getElementById('results');
 const factsEl = document.getElementById('facts');
 const calendarBody = document.getElementById('calendarBody');
 
-function validZip(z){
-  return /^\d{5}$/.test(z);
-}
+function validZip(z){ return /^\d{5}$/.test(z); }
 
 function fmt(d){
   return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
@@ -159,32 +151,32 @@ function estimate(zip){
 }
 
 const crops = [
-["Tomato",[8,6],[1,2]],
-["Pepper",[10,8],[2,3]],
-["Cucumber",[4,3],[1,2]],
-["Zucchini / Squash",[3,2],[1,1]],
-["Green Beans",null,[1,2]],
-["Peas",null,[-6,-4]],
-["Lettuce",null,[-4,-2]],
-["Spinach",null,[-6,-4]],
-["Broccoli",[6,4],[-2,-1]],
-["Cabbage",[6,4],[-4,-2]],
-["Cauliflower",[6,4],[-2,-1]],
-["Brussels Sprouts",[6,4],[-4,-2]],
-["Carrot",null,[-4,-2]],
-["Radish",null,[-6,-4]],
-["Beet",null,[-4,-2]],
-["Onion",[10,8],[-4,-2]],
-["Garlic",null,[-8,-6]],
-["Leek",[10,8],[-4,-2]],
-["Red Potato",null,[0,2]],
-["Eggplant",[8,6],[2,3]],
-["Okra",[4,3],[2,3]],
-["Swiss Chard",null,[-4,-2]],
-["Celery",[10,8],[-2,-1]],
-["Asparagus",null,[2,4]],
-["Artichoke",[8,6],[2,3]],
-["Pumpkin",[3,2],[2,3]]
+["Tomato",[8,6],[1,2],"70–80"],
+["Pepper",[10,8],[2,3],"75–85"],
+["Cucumber",[4,3],[1,2],"70–80"],
+["Zucchini / Squash",[3,2],[1,1],"70–80"],
+["Green Beans",null,[1,2],"65–75"],
+["Peas",null,[-6,-4],"60–70"],
+["Lettuce",null,[-4,-2],"60–70"],
+["Spinach",null,[-6,-4],"55–65"],
+["Broccoli",[6,4],[-2,-1],"60–70"],
+["Cabbage",[6,4],[-4,-2],"60–70"],
+["Cauliflower",[6,4],[-2,-1],"60–70"],
+["Brussels Sprouts",[6,4],[-4,-2],"60–70"],
+["Carrot",null,[-4,-2],"60–70"],
+["Radish",null,[-6,-4],"55–65"],
+["Beet",null,[-4,-2],"60–70"],
+["Onion",[10,8],[-4,-2],"65–75"],
+["Garlic",null,[-8,-6],"60–70"],
+["Leek",[10,8],[-4,-2],"65–75"],
+["Red Potato",null,[0,2],"60–70"],
+["Eggplant",[8,6],[2,3],"75–85"],
+["Okra",[4,3],[2,3],"75–90"],
+["Swiss Chard",null,[-4,-2],"60–70"],
+["Celery",[10,8],[-2,-1],"65–75"],
+["Asparagus",null,[2,4],"60–70"],
+["Artichoke",[8,6],[2,3],"65–75"],
+["Pumpkin",[3,2],[2,3],"70–85"]
 ];
 
 function build(zip){
@@ -218,6 +210,7 @@ function build(zip){
       <td>${c[0]}</td>
       <td>${indoor}</td>
       <td>${out}</td>
+      <td>${c[3]}</td>
     </tr>`;
   });
 
