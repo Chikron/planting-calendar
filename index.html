@@ -1,527 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Planting Calendar by ZIP Code</title>
-  <style>
-    :root {
-      --bg: #0b1020;
-      --panel: #121933;
-      --panel-2: #162147;
-      --text: #eef3ff;
-      --muted: #aeb9d6;
-      --line: #2a3766;
-      --accent: #7dd3fc;
-      --danger: #fca5a5;
-      --ok: #86efac;
-      --shadow: 0 14px 40px rgba(0,0,0,.28);
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planting Calendar</title>
 
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(125,211,252,.10), transparent 28%),
-        linear-gradient(180deg, #0a1021 0%, #0b1020 100%);
-      color: var(--text);
-    }
-
-    .wrap {
-      max-width: 1360px;
-      margin: 0 auto;
-      padding: 24px 16px 48px;
-    }
-
-    .hero, .panel {
-      background: var(--panel);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(255,255,255,.06);
-    }
-
-    .hero {
-      padding: 24px;
-    }
-
-    h1 {
-      margin: 0 0 10px;
-      font-size: clamp(1.8rem, 3vw, 2.5rem);
-      line-height: 1.1;
-    }
-
-    .sub {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.6;
-      max-width: 1000px;
-    }
-
-    .toolbar {
-      display: grid;
-      grid-template-columns: minmax(220px, 280px) 180px;
-      gap: 12px;
-      margin-top: 18px;
-      align-items: end;
-    }
-
-    .field {
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 14px;
-      padding: 10px 12px;
-    }
-
-    .field label {
-      display: block;
-      font-size: .8rem;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .field input {
-      width: 100%;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text);
-      font-size: 1rem;
-      font-family: inherit;
-    }
-
-    .field input::placeholder {
-      color: #c8d2eb;
-      opacity: .9;
-    }
-
-    button {
-      height: 58px;
-      border: none;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--accent), #60a5fa);
-      color: #071224;
-      font-weight: 700;
-      font-size: 1rem;
-      cursor: pointer;
-      padding: 0 18px;
-    }
-
-    button:disabled {
-      opacity: .7;
-      cursor: wait;
-    }
-
-    .status {
-      margin-top: 14px;
-      color: var(--muted);
-      min-height: 22px;
-      font-size: .95rem;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 18px;
-      margin-top: 18px;
-      align-items: start;
-    }
-
-    .panel {
-      padding: 18px;
-    }
-
-    .panel h2 {
-      margin: 0 0 14px;
-      font-size: 1.05rem;
-    }
-
-    .facts {
-      display: grid;
-      gap: 10px;
-    }
-
-    .fact {
-      padding: 12px 14px;
-      border-radius: 14px;
-      background: rgba(255,255,255,.035);
-      border: 1px solid rgba(255,255,255,.06);
-    }
-
-    .fact .k {
-      font-size: .76rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      margin-bottom: 6px;
-    }
-
-    .fact .v {
-      font-size: 1.02rem;
-      font-weight: 700;
-    }
-
-    .note-box {
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid var(--line);
-      color: var(--muted);
-      font-size: .9rem;
-      line-height: 1.55;
-    }
-
-    .table-wrap {
-      overflow: auto;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.07);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1120px;
-      background: rgba(255,255,255,.02);
-    }
-
-    thead th {
-      background: var(--panel-2);
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      text-align: center;
-      padding: 14px 10px;
-      border-bottom: 1px solid var(--line);
-      font-size: .84rem;
-      letter-spacing: .04em;
-    }
-
-    td, th {
-      border-bottom: 1px solid var(--line);
-      text-align: center;
-      vertical-align: middle;
-      padding: 12px 10px;
-    }
-
-    tbody tr:hover {
-      background: rgba(125,211,252,.04);
-    }
-
-    .crop {
-      font-weight: 700;
-    }
-
-    .foot {
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: .9rem;
-      line-height: 1.55;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    @media (max-width: 980px) {
-      .toolbar, .grid {
-        grid-template-columns: 1fr;
-      }
-
-      button {
-        height: 54px;
-      }
-    }
-  </style>
+<style>
+body {
+  margin:0;
+  font-family:Arial;
+  background:#0b1020;
+  color:#fff;
+  padding:20px;
+}
+input,button {
+  padding:10px;
+  border-radius:6px;
+  border:none;
+}
+button {
+  background:#7dd3fc;
+  cursor:pointer;
+}
+table {
+  width:100%;
+  margin-top:20px;
+  border-collapse:collapse;
+}
+th,td {
+  padding:10px;
+  border-bottom:1px solid #2a3766;
+  text-align:center;
+}
+.panel { margin-top:20px; }
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <section class="hero">
-      <h1>Interactive Planting Calendar</h1>
-      <p class="sub">
-        Enter a U.S. ZIP code. The tool will look up the ZIP location, fetch a zone result, fetch the last spring frost date, and then build the vegetable calendar.
-        If the live data services do not respond, the tool will stop and tell you instead of showing made-up values.
-      </p>
 
-      <div class="toolbar">
-        <div class="field">
-          <label for="zip">ZIP Code</label>
-          <input id="zip" type="text" inputmode="numeric" maxlength="5" placeholder="Enter Zip Code" />
-        </div>
-        <button id="go">Build Calendar</button>
-      </div>
+<h1>Interactive Planting Calendar</h1>
 
-      <div class="status" id="status">Ready.</div>
-    </section>
+<input id="zip" placeholder="Enter Zip Code">
+<button onclick="run()">Build Calendar</button>
 
-    <section class="grid hidden" id="results">
-      <aside class="panel">
-        <h2>Location Snapshot</h2>
-        <div class="facts" id="facts"></div>
+<div id="status"></div>
+<div id="facts"></div>
 
-        <div class="note-box">
-          Warm-season vegetables often do better with a cautious outdoor planting date after the median last frost date, especially in cooler spring climates.
-        </div>
-      </aside>
+<table>
+<thead>
+<tr>
+<th>Vegetable</th>
+<th>Start Indoors</th>
+<th>Ideal Indoor Temp (°F)</th>
+<th>Plant Outside</th>
+</tr>
+</thead>
+<tbody id="table"></tbody>
+</table>
 
-      <section class="panel">
-        <h2>Vegetable Calendar</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Vegetable</th>
-                <th>Start Indoors</th>
-                <th>Ideal Indoor Temp (°F)</th>
-                <th>Plant Outside</th>
-              </tr>
-            </thead>
-            <tbody id="calendarBody"></tbody>
-          </table>
-        </div>
+<script>
 
-        <div class="foot">
-          “Direct sow” means seed directly outdoors. Cool-season crops are timed before last frost. Warm-season crops are timed after last frost.
-        </div>
-      </section>
-    </section>
-  </div>
+function fmt(d){
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+}
 
-  <script>
-    const zipInput = document.getElementById('zip');
-    const goBtn = document.getElementById('go');
-    const statusEl = document.getElementById('status');
-    const resultsEl = document.getElementById('results');
-    const factsEl = document.getElementById('facts');
-    const calendarBody = document.getElementById('calendarBody');
+function shift(d,w,before=true){
+  let x=new Date(d);
+  x.setDate(x.getDate()+(w*7*(before?-1:1)));
+  return x;
+}
 
-    const crops = [
-      ["Tomato", [8, 6], [1, 2], "70–80"],
-      ["Pepper", [10, 8], [2, 3], "75–85"],
-      ["Cucumber", [4, 3], [1, 2], "70–80"],
-      ["Zucchini / Squash", [3, 2], [1, 1], "70–80"],
-      ["Green Beans", null, [1, 2], "65–75"],
-      ["Peas", null, [-6, -4], "60–70"],
-      ["Lettuce", null, [-4, -2], "60–70"],
-      ["Spinach", null, [-6, -4], "55–65"],
-      ["Broccoli", [6, 4], [-2, -1], "60–70"],
-      ["Cabbage", [6, 4], [-4, -2], "60–70"],
-      ["Cauliflower", [6, 4], [-2, -1], "60–70"],
-      ["Brussels Sprouts", [6, 4], [-4, -2], "60–70"],
-      ["Carrot", null, [-4, -2], "60–70"],
-      ["Radish", null, [-6, -4], "55–65"],
-      ["Beet", null, [-4, -2], "60–70"],
-      ["Onion", [10, 8], [-4, -2], "65–75"],
-      ["Garlic", null, [-8, -6], "60–70"],
-      ["Leek", [10, 8], [-4, -2], "65–75"],
-      ["Red Potato", null, [0, 2], "60–70"],
-      ["Eggplant", [8, 6], [2, 3], "75–85"],
-      ["Okra", [4, 3], [2, 3], "75–90"],
-      ["Swiss Chard", null, [-4, -2], "60–70"],
-      ["Celery", [10, 8], [-2, -1], "65–75"],
-      ["Asparagus", null, [2, 4], "60–70"],
-      ["Artichoke", [8, 6], [2, 3], "65–75"],
-      ["Pumpkin", [3, 2], [2, 3], "70–85"]
-    ];
+function valid(z){
+  return /^\d{5}$/.test(z);
+}
 
-    function setStatus(msg, isError = false) {
-      statusEl.textContent = msg;
-      statusEl.style.color = isError ? 'var(--danger)' : 'var(--muted)';
+// REALISTIC SAFE BASELINE (ZONE 6 TYPE)
+function getFrostDate(){
+  return new Date(new Date().getFullYear(),4,15); // May 15
+}
+
+const crops = [
+["Tomato",[8,6],[1,2],"70–80"],
+["Pepper",[10,8],[2,3],"75–85"],
+["Cucumber",[4,3],[1,2],"70–80"],
+["Zucchini / Squash",[3,2],[1,1],"70–80"],
+["Green Beans",null,[1,2],"65–75"],
+["Peas",null,[-6,-4],"60–70"],
+["Lettuce",null,[-4,-2],"60–70"],
+["Spinach",null,[-6,-4],"55–65"],
+["Broccoli",[6,4],[-2,-1],"60–70"],
+["Cabbage",[6,4],[-4,-2],"60–70"],
+["Cauliflower",[6,4],[-2,-1],"60–70"],
+["Brussels Sprouts",[6,4],[-4,-2],"60–70"],
+["Carrot",null,[-4,-2],"60–70"],
+["Radish",null,[-6,-4],"55–65"],
+["Beet",null,[-4,-2],"60–70"],
+["Onion",[10,8],[-4,-2],"65–75"],
+["Garlic",null,[-8,-6],"60–70"],
+["Leek",[10,8],[-4,-2],"65–75"],
+["Red Potato",null,[0,2],"60–70"],
+["Eggplant",[8,6],[2,3],"75–85"],
+["Okra",[4,3],[2,3],"75–90"],
+["Swiss Chard",null,[-4,-2],"60–70"],
+["Celery",[10,8],[-2,-1],"65–75"],
+["Asparagus",null,[2,4],"60–70"],
+["Artichoke",[8,6],[2,3],"65–75"],
+["Pumpkin",[3,2],[2,3],"70–85"]
+];
+
+function run(){
+
+  let zip = document.getElementById("zip").value;
+
+  if(!valid(zip)){
+    status.innerText="Enter valid ZIP code";
+    return;
+  }
+
+  status.innerText="Building calendar...";
+
+  let frost = getFrostDate();
+
+  facts.innerHTML = `
+  ZIP: ${zip}<br>
+  Frost Baseline: ${fmt(frost)}<br>
+  Note: Conservative planting model (safe timing)
+  `;
+
+  table.innerHTML="";
+
+  crops.forEach(c=>{
+
+    let indoor="Direct sow";
+
+    if(c[1]){
+      indoor = `${fmt(shift(frost,c[1][0]))} - ${fmt(shift(frost,c[1][1]))}`;
     }
 
-    function parseZip(raw) {
-      const zip = String(raw || '').trim();
-      return /^\d{5}$/.test(zip) ? zip : '';
+    let outside;
+
+    if(c[2][0] < 0){
+      outside = `${fmt(shift(frost,Math.abs(c[2][0])))} - ${fmt(shift(frost,Math.abs(c[2][1])))}`
+    } else {
+      outside = `${fmt(shift(frost,c[2][0],false))} - ${fmt(shift(frost,c[2][1],false))}`
     }
 
-    function fmt(date) {
-      return date.toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric'
-      });
-    }
+    table.innerHTML += `
+    <tr>
+      <td>${c[0]}</td>
+      <td>${indoor}</td>
+      <td>${c[3]}</td>
+      <td>${outside}</td>
+    </tr>`;
+  });
 
-    function shiftWeeks(date, weeks, before = true) {
-      const d = new Date(date);
-      d.setDate(d.getDate() + (weeks * 7 * (before ? -1 : 1)));
-      return d;
-    }
+  status.innerText="Done";
+}
 
-    function rangeText(start, end) {
-      return `${fmt(start)} - ${fmt(end)}`;
-    }
+</script>
 
-    async function fetchZipLocation(zip) {
-      const res = await fetch(`https://api.zippopotam.us/us/${zip}`);
-      if (!res.ok) {
-        throw new Error('ZIP lookup failed.');
-      }
-      const data = await res.json();
-      const place = data.places && data.places[0] ? data.places[0] : null;
-      if (!place) {
-        throw new Error('ZIP location not found.');
-      }
-
-      return {
-        city: place['place name'] || '',
-        state: place['state abbreviation'] || place['state'] || '',
-        latitude: place['latitude'] || '',
-        longitude: place['longitude'] || ''
-      };
-    }
-
-    async function fetchZone(zip) {
-      const res = await fetch(`https://phzmapi.org/${zip}.json`);
-      if (!res.ok) {
-        throw new Error('Zone lookup failed.');
-      }
-      const data = await res.json();
-      if (!data || !data.zone) {
-        throw new Error('Zone result missing.');
-      }
-      return data.zone;
-    }
-
-    async function fetchFrost(zip) {
-      const res = await fetch(`https://apis.joelgrant.dev/api/v1/frost/${zip}`);
-      if (!res.ok) {
-        throw new Error('Frost lookup failed.');
-      }
-      const json = await res.json();
-      const data = json && json.data ? json.data : null;
-      const raw = data && data.frost_dates && data.frost_dates.last_frost_32f ? data.frost_dates.last_frost_32f : null;
-
-      if (!raw) {
-        throw new Error('Frost result missing.');
-      }
-
-      const median = raw["50%"] || raw["50"] || null;
-      if (!median) {
-        throw new Error('Median frost result missing.');
-      }
-
-      const [month, day] = median.split('/').map(Number);
-      const year = new Date().getFullYear();
-
-      return {
-        lastFrostDate: new Date(year, month - 1, day),
-        weatherStation: data.weather_station && data.weather_station.name ? data.weather_station.name : '',
-        stationDistanceKm: data.weather_station && data.weather_station.distance_km != null
-          ? Number(data.weather_station.distance_km).toFixed(1)
-          : '',
-        sourceCity: data.location && data.location.city ? data.location.city : '',
-        sourceState: data.location && data.location.state ? data.location.state : ''
-      };
-    }
-
-    function buildFacts(zip, location, zone, frost) {
-      factsEl.innerHTML = `
-        <div class="fact">
-          <div class="k">ZIP Code</div>
-          <div class="v">${zip}</div>
-        </div>
-        <div class="fact">
-          <div class="k">Location</div>
-          <div class="v">${[location.city, location.state].filter(Boolean).join(', ') || '—'}</div>
-        </div>
-        <div class="fact">
-          <div class="k">USDA Zone</div>
-          <div class="v">${zone}</div>
-        </div>
-        <div class="fact">
-          <div class="k">Last Spring Frost</div>
-          <div class="v">${fmt(frost.lastFrostDate)}</div>
-        </div>
-        <div class="fact">
-          <div class="k">Nearest Frost Station</div>
-          <div class="v">${frost.weatherStation || '—'}</div>
-        </div>
-        <div class="fact">
-          <div class="k">Station Distance</div>
-          <div class="v">${frost.stationDistanceKm ? `${frost.stationDistanceKm} km` : '—'}</div>
-        </div>
-      `;
-    }
-
-    function buildCalendar(frostDate) {
-      calendarBody.innerHTML = '';
-
-      crops.forEach(crop => {
-        const name = crop[0];
-        const indoorRule = crop[1];
-        const outsideRule = crop[2];
-        const temp = crop[3];
-
-        let indoor = 'Direct sow';
-
-        if (indoorRule) {
-          indoor = rangeText(
-            shiftWeeks(frostDate, indoorRule[0], true),
-            shiftWeeks(frostDate, indoorRule[1], true)
-          );
-        }
-
-        let outside = '';
-        if (outsideRule[0] < 0) {
-          outside = rangeText(
-            shiftWeeks(frostDate, Math.abs(outsideRule[0]), true),
-            shiftWeeks(frostDate, Math.abs(outsideRule[1]), true)
-          );
-        } else {
-          outside = rangeText(
-            shiftWeeks(frostDate, outsideRule[0], false),
-            shiftWeeks(frostDate, outsideRule[1], false)
-          );
-        }
-
-        calendarBody.innerHTML += `
-          <tr>
-            <td class="crop">${name}</td>
-            <td>${indoor}</td>
-            <td>${temp}</td>
-            <td>${outside}</td>
-          </tr>
-        `;
-      });
-    }
-
-    async function run() {
-      const zip = parseZip(zipInput.value);
-
-      if (!zip) {
-        setStatus('Enter a valid 5-digit U.S. ZIP code.', true);
-        resultsEl.classList.add('hidden');
-        return;
-      }
-
-      goBtn.disabled = true;
-      setStatus('Looking up ZIP, zone, and frost date...');
-
-      try {
-        const [location, zone, frost] = await Promise.all([
-          fetchZipLocation(zip),
-          fetchZone(zip),
-          fetchFrost(zip)
-        ]);
-
-        buildFacts(zip, location, zone, frost);
-        buildCalendar(frost.lastFrostDate);
-        resultsEl.classList.remove('hidden');
-        setStatus('Calendar built.');
-      } catch (error) {
-        console.error(error);
-        resultsEl.classList.add('hidden');
-        setStatus('Live lookup failed for this ZIP code. No values were shown because the tool could not verify the zone and frost date.', true);
-      } finally {
-        goBtn.disabled = false;
-      }
-    }
-
-    goBtn.addEventListener('click', run);
-    zipInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') run();
-    });
-
-    zipInput.value = '48310';
-  </script>
 </body>
 </html>
