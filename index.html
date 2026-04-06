@@ -28,8 +28,9 @@
     html {
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
+      overflow-x: hidden;
     }
-
+    
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -38,6 +39,7 @@
         linear-gradient(180deg, #0a1021 0%, #0b1020 100%);
       color: var(--text);
       overflow-x: hidden;
+      
     }
 
     img {
@@ -263,7 +265,8 @@
     }
 
     .table-wrap {
-  overflow-x: visible;
+  width: 100%;
+  overflow-x: hidden;
   overflow-y: hidden;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,.07);
@@ -277,42 +280,40 @@ table {
   table-layout: auto;
 }
 
-    table {
-      width: 100%;
-      min-width: 1180px;
-      border-collapse: collapse;
-      background: rgba(255,255,255,.02);
-    }
+thead th {
+  background: var(--panel-2);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: center;
+  padding: 14px 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: .84rem;
+  letter-spacing: .04em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 
-    thead th {
-      background: var(--panel-2);
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      text-align: center;
-      padding: 14px 10px;
-      border-bottom: 1px solid var(--line);
-      font-size: .84rem;
-      letter-spacing: .04em;
-      white-space: nowrap;
-    }
+td, th {
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+  vertical-align: middle;
+  padding: 12px 10px;
+  max-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 
-    td, th {
-      border-bottom: 1px solid var(--line);
-      text-align: center;
-      vertical-align: middle;
-      padding: 12px 10px;
-    }
+td {
+  line-height: 1.4;
+}
 
-    td {
-      line-height: 1.4;
-    }
+tbody tr:hover {
+  background: rgba(125,211,252,.04);
+}
 
-    tbody tr:hover {
-      background: rgba(125,211,252,.04);
-    }
-
-    .crop {
+.crop {
   font-weight: 700;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -325,14 +326,6 @@ th:last-child {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
-    
-    .foot {
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: .9rem;
-      line-height: 1.55;
-      overflow-wrap: anywhere;
-    }
 
     .hidden {
       display: none;
