@@ -195,9 +195,16 @@ function sendJson(res, status, payload) {
   res.end(JSON.stringify(payload));
 }
 
-function parseZip(raw) {
-  const zip = String(raw || '').trim();
-  return /^\d{5}$/.test(zip) ? zip : '';
+function parseQuery(raw) {
+  return String(raw || '').trim();
+}
+
+function isZipQuery(value) {
+  return /^\d{5}$/.test(value);
+}
+
+function isCityStateQuery(value) {
+  return /^[A-Za-z .'-]+,\s*[A-Za-z]{2,}$/.test(value);
 }
 
 function formatDate(date) {
@@ -230,7 +237,7 @@ function makeYearDateFromMMDD(mmdd) {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-async function fetchJson(url, { timeoutMs = 8000, retries = 2 } = {}) {
+async function fetchJson(url, { timeoutMs = 8000, retries = 2, headers = {} } = {}) {
   let lastError;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -240,7 +247,10 @@ async function fetchJson(url, { timeoutMs = 8000, retries = 2 } = {}) {
     try {
       const response = await fetch(url, {
         method: 'GET',
-        headers: { 'Accept': 'application/json' },
+        headers: {
+          'Accept': 'application/json',
+          ...headers
+        },
         signal: controller.signal
       });
 
@@ -277,6 +287,55 @@ async function fetchZipLocation(zip) {
     latitude: place['latitude'] || '',
     longitude: place['longitude'] || ''
   };
+}
+
+async function fetchLocationFromCityState(query) {
+  const parts = query.split(',');
+  const city = (parts[0] || '').trim();
+  const state = (parts[1] || '').trim();
+
+  if (!city || !state) {
+    throw new Error('City, State format is invalid.');
+  }
+
+  const url = `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=USA&format=jsonv2&limit=1`;
+
+  const data = await fetchJson(url, {
+    timeoutMs: 8000,
+    retries: 2,
+    headers: {
+      'User-Agent': 'planting-calendar/1.0'
+    }
+  });
+
+  if (!Array.isArray(data) || !data[0]) {
+    throw new Error('City, State location not found.');
+  }
+
+  return {
+    city,
+    state,
+    latitude: data[0].lat,
+    longitude: data[0].lon
+  };
+}
+
+async function fetchZipFromCoordinates(lat, lon) {
+  const url = `https://geocode.maps.co/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&format=json`;
+
+  const data = await fetchJson(url, { timeoutMs: 8000, retries: 2 });
+
+  const postcode = data && data.address ? data.address.postcode : null;
+  if (!postcode) {
+    throw new Error('ZIP code could not be resolved from City, State.');
+  }
+
+  const match = String(postcode).match(/\d{5}/);
+  if (!match) {
+    throw new Error('Resolved ZIP code was invalid.');
+  }
+
+  return match[0];
 }
 
 async function fetchZone(zip) {
@@ -323,7 +382,6 @@ function buildCalendar(lastFrostDate) {
       : 'Direct sow';
 
     const anchorDate = crop.outdoorRule.anchor === 'safeWarm' ? safeWarmStart : lastFrostDate;
-
     const outdoorStart = shiftWeeks(anchorDate, crop.outdoorRule.weeks[0], crop.outdoorRule.direction);
     const outdoorEnd = shiftWeeks(anchorDate, crop.outdoorRule.weeks[1], crop.outdoorRule.direction);
 
@@ -337,20 +395,6 @@ function buildCalendar(lastFrostDate) {
   });
 }
 
-async function getLiveData(zip) {
-  const results = await Promise.allSettled([
-    fetchZipLocation(zip),
-    fetchZone(zip),
-    fetchFrost(zip)
-  ]);
-
-  const location = results[0].status === 'fulfilled' ? results[0].value : null;
-  const zone = results[1].status === 'fulfilled' ? results[1].value : null;
-  const frost = results[2].status === 'fulfilled' ? results[2].value : null;
-
-  return { location, zone, frost };
-}
-
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return sendJson(res, 405, {
@@ -359,59 +403,88 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  const zip = parseZip(req.query && req.query.zip);
-  if (!zip) {
+  const query = parseQuery(req.query && req.query.query);
+
+  if (!query) {
     return sendJson(res, 400, {
       ok: false,
-      error: 'Enter a valid 5-digit U.S. ZIP code.'
+      error: 'Enter a ZIP code or City, State.'
     });
   }
 
-  const cached = globalCache.get(zip);
+  const cacheKey = query.toLowerCase();
+  const cached = globalCache.get(cacheKey);
   if (cached && (Date.now() - cached.savedAt < CACHE_TTL_MS)) {
     return sendJson(res, 200, cached.payload);
   }
 
   try {
-    const { location, zone, frost } = await getLiveData(zip);
+    let zip = '';
+    let inputLocation = null;
 
-    if (!frost) {
-      return sendJson(res, 502, {
+    if (isZipQuery(query)) {
+      zip = query;
+    } else if (isCityStateQuery(query)) {
+      inputLocation = await fetchLocationFromCityState(query);
+      zip = await fetchZipFromCoordinates(inputLocation.latitude, inputLocation.longitude);
+    } else {
+      return sendJson(res, 400, {
         ok: false,
-        error: 'The backend could not verify the median last spring frost date for this ZIP code, so the calendar was not built.'
+        error: 'Use either a 5-digit ZIP code or City, State.'
       });
     }
 
-    const safeWarmStart = addDays(frost.lastFrostDate, 14);
-    const verification = zone && location ? 'verified' : 'partial';
+    const [zipLocation, zone, frost] = await Promise.allSettled([
+      fetchZipLocation(zip),
+      fetchZone(zip),
+      fetchFrost(zip)
+    ]);
+
+    const location = zipLocation.status === 'fulfilled'
+      ? zipLocation.value
+      : inputLocation;
+
+    const zoneValue = zone.status === 'fulfilled' ? zone.value : null;
+    const frostValue = frost.status === 'fulfilled' ? frost.value : null;
+
+    if (!frostValue) {
+      return sendJson(res, 502, {
+        ok: false,
+        error: 'The backend could not verify the median last spring frost date for this search, so the calendar was not built.'
+      });
+    }
+
+    const safeWarmStart = addDays(frostValue.lastFrostDate, 14);
+    const verification = zoneValue && location ? 'verified' : 'partial';
 
     let lookupNote = '';
     if (verification === 'verified') {
-      lookupNote = frost.stationDistanceKm
-        ? `Zone, location, and frost results were verified. Frost timing is based on a median last spring frost date from the nearest matched station (${frost.stationDistanceKm} km away). Warm-season crops use a safer outdoor anchor 14 days after that frost date.`
-        : 'Zone, location, and frost results were verified. Warm-season crops use a safer outdoor anchor 14 days after the frost date.';
+      lookupNote = frostValue.stationDistanceKm
+        ? `Zone, location, and frost results were verified. Frost timing is based on a median last spring frost date from the nearest matched station (${frostValue.stationDistanceKm} km away). Warm-season crops use a safer outdoor anchor 14 days after that frost date.`
+        : 'Zone, location, and frost results were verified. Warm-season crops use a safer outdoor anchor 14 days after that frost date.';
     } else {
       const missing = [];
       if (!location) missing.push('location');
-      if (!zone) missing.push('zone');
+      if (!zoneValue) missing.push('zone');
 
-      lookupNote = `The calendar was built because the frost date was verified, but ${missing.join(' and ')} could not be fully verified for this ZIP code. Values that could not be verified are shown as unavailable.`;
+      lookupNote = `The calendar was built because the frost date was verified, but ${missing.join(' and ')} could not be fully verified for this search. Values that could not be verified are shown as unavailable.`;
     }
 
     const payload = {
       ok: true,
       verification,
+      input: query,
       zip,
       locationDisplay: location ? [location.city, location.state].filter(Boolean).join(', ') || '—' : 'Unavailable',
-      zone: zone || 'Unavailable',
-      lastFrostDisplay: formatDate(frost.lastFrostDate),
+      zone: zoneValue || 'Unavailable',
+      lastFrostDisplay: formatDate(frostValue.lastFrostDate),
       safeWarmStartDisplay: formatDate(safeWarmStart),
-      weatherStation: frost.weatherStation || '—',
+      weatherStation: frostValue.weatherStation || '—',
       lookupNote,
-      calendar: buildCalendar(frost.lastFrostDate)
+      calendar: buildCalendar(frostValue.lastFrostDate)
     };
 
-    globalCache.set(zip, {
+    globalCache.set(cacheKey, {
       savedAt: Date.now(),
       payload
     });
@@ -421,7 +494,7 @@ module.exports = async function handler(req, res) {
     console.error(error);
     return sendJson(res, 502, {
       ok: false,
-      error: 'Live lookup failed for this ZIP code. The backend did not return values because it could not verify the required frost data.'
+      error: 'Live lookup failed for this search. The backend did not return values because it could not verify the required frost data.'
     });
   }
 };
