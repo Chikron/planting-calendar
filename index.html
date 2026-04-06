@@ -23,7 +23,7 @@ body {
 }
 
 .wrap {
-  max-width:1000px;
+  max-width:1100px;
   margin:auto;
   padding:20px;
 }
@@ -95,9 +95,6 @@ td, th {
 
 <div class="toolbar">
 <input id="zip" placeholder="63123" maxlength="5">
-<select id="risk">
-<option>Standard</option>
-</select>
 <button id="go">Build Calendar</button>
 </div>
 
@@ -112,7 +109,7 @@ td, th {
 <table>
 <thead>
 <tr>
-<th>Crop</th>
+<th>Vegetable</th>
 <th>Start Indoors</th>
 <th>Plant Outside</th>
 </tr>
@@ -132,21 +129,21 @@ const resultsEl = document.getElementById('results');
 const factsEl = document.getElementById('facts');
 const calendarBody = document.getElementById('calendarBody');
 
-function validZip(z) {
+function validZip(z){
   return /^\d{5}$/.test(z);
 }
 
-function fmt(d) {
+function fmt(d){
   return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
 }
 
-function shift(d,weeks,before=true) {
+function shift(d,weeks,before=true){
   let x=new Date(d);
   x.setDate(x.getDate()+(weeks*7*(before?-1:1)));
   return x;
 }
 
-function estimate(zip) {
+function estimate(zip){
   let first=Number(zip[0]);
   let frost=new Date(new Date().getFullYear(),3,15);
   let zone="Unknown";
@@ -161,17 +158,33 @@ function estimate(zip) {
   return {zone,frost};
 }
 
-const crops=[
+const crops = [
 ["Tomato",[8,6],[1,2]],
 ["Pepper",[10,8],[2,3]],
-["Broccoli",[6,4],[-2,-1]],
+["Cucumber",[4,3],[1,2]],
+["Zucchini / Squash",[3,2],[1,1]],
+["Green Beans",null,[1,2]],
+["Peas",null,[-6,-4]],
 ["Lettuce",null,[-4,-2]],
 ["Spinach",null,[-6,-4]],
+["Broccoli",[6,4],[-2,-1]],
+["Cabbage",[6,4],[-4,-2]],
+["Cauliflower",[6,4],[-2,-1]],
+["Brussels Sprouts",[6,4],[-4,-2]],
 ["Carrot",null,[-4,-2]],
 ["Radish",null,[-6,-4]],
-["Cucumber",[4,3],[1,2]],
-["Zucchini",[3,2],[1,1]],
-["Beans",null,[1,2]]
+["Beet",null,[-4,-2]],
+["Onion",[10,8],[-4,-2]],
+["Garlic",null,[-8,-6]],
+["Leek",[10,8],[-4,-2]],
+["Red Potato",null,[0,2]],
+["Eggplant",[8,6],[2,3]],
+["Okra",[4,3],[2,3]],
+["Swiss Chard",null,[-4,-2]],
+["Celery",[10,8],[-2,-1]],
+["Asparagus",null,[2,4]],
+["Artichoke",[8,6],[2,3]],
+["Pumpkin",[3,2],[2,3]]
 ];
 
 function build(zip){
@@ -187,39 +200,42 @@ function build(zip){
 
   crops.forEach(c=>{
     let indoor="Direct sow";
+
     if(c[1]){
       indoor=`${fmt(shift(data.frost,c[1][0]))} - ${fmt(shift(data.frost,c[1][1]))}`;
     }
 
     let out;
-    if(c[2][0]<0){
+
+    if(c[2][0] < 0){
       out=`${fmt(shift(data.frost,Math.abs(c[2][0])))} - ${fmt(shift(data.frost,Math.abs(c[2][1])))}`
     } else {
       out=`${fmt(shift(data.frost,c[2][0],false))} - ${fmt(shift(data.frost,c[2][1],false))}`
     }
 
-    calendarBody.innerHTML+=`
+    calendarBody.innerHTML += `
     <tr>
-    <td>${c[0]}</td>
-    <td>${indoor}</td>
-    <td>${out}</td>
+      <td>${c[0]}</td>
+      <td>${indoor}</td>
+      <td>${out}</td>
     </tr>`;
   });
 
   resultsEl.classList.remove('hidden');
 }
 
-goBtn.onclick=()=>{
-  let zip=zipInput.value;
+goBtn.onclick = () => {
+  let zip = zipInput.value;
+
   if(!validZip(zip)){
-    statusEl.textContent="Enter valid ZIP";
-    statusEl.style.color="var(--danger)";
+    statusEl.textContent = "Enter valid ZIP";
+    statusEl.style.color = "var(--danger)";
     return;
   }
 
-  statusEl.textContent="Building...";
+  statusEl.textContent = "Building...";
   build(zip);
-  statusEl.textContent="Done";
+  statusEl.textContent = "Done";
 };
 
 zipInput.value="63123";
